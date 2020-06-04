@@ -1,6 +1,7 @@
 from django.db import models
 
 # Create your models here.
+from django.utils import timezone
 
 
 class Apartment(models.Model):
@@ -11,3 +12,7 @@ class Apartment(models.Model):
 
     def __str__(self):
         return self.title + ": " + self.contact
+
+class ApartmentListings(models.Model):
+    lastPostUrl = models.CharField()
+    lastPostTimestamp = models.DateTimeField(default=timezone.now)
