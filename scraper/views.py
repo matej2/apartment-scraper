@@ -20,9 +20,14 @@ def scrape_params(request):
     options.headless = True
     options.preferences.update({"javascript.enabled": False})
     driver = webdriver.Firefox(options=options)
-    driver.get("https://www.freecodecamp.org/the-fastest-web-page-on-the-internet")
 
-    title = driver.find_element_by_tag_name('h1').text
+    # Make sure that list ordering is 'by latest'
+    driver.get("https://www.nepremicnine.net/oglasi-oddaja/ljubljana-mesto/ljubljana-bezigrad,ljubljana-moste-polje/stanovanje/garsonjera,1-sobno,1.5-sobno/?s=16")
+
+    post_url_list = driver.find_elements_by_css_selector('.seznam [itemprop*=name] a')
+
+    for link in post_url_list:
+        print(link.get_attribute('href'))
 
     driver.close()
-    return HttpResponse(title, status=200)
+    return HttpResponse('ok check', status=200)
