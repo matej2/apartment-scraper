@@ -10,8 +10,8 @@ from scraper.models import Apartment
 
 
 def scrape_params(request):
-    #binary_dir = os.path.join('opt', 'geckodriver')
-    #binary = FirefoxBinary(binary_dir)
+    # binary_dir = os.path.join('opt', 'geckodriver')
+    # binary = FirefoxBinary(binary_dir)
 
     firefox_profile = webdriver.FirefoxProfile()
     firefox_profile.set_preference('permissions.default.image', 2)
@@ -23,13 +23,49 @@ def scrape_params(request):
     driver = webdriver.Firefox(options=options)
 
     # Make sure that list ordering is 'by latest'
-    driver.get("https://www.nepremicnine.net/oglasi-oddaja/ljubljana-mesto/ljubljana-bezigrad,ljubljana-moste-polje/stanovanje/garsonjera,1-sobno,1.5-sobno/?s=16")
+    driver.get(
+        "https://www.nepremicnine.net/oglasi-oddaja/ljubljana-mesto/ljubljana-bezigrad,ljubljana-moste-polje/stanovanje/garsonjera,1-sobno,1.5-sobno/?s=16")
 
     post_url_list = driver.find_elements_by_css_selector('.seznam [itemprop*=name] a')
 
     for link in post_url_list:
-        post = Apartment(url=link.get_attribute('href'), scraped=False)
-        post.save()
+        if len(Apartment.objects.filter(url=link.get_attribute('href'))) == 0:
+            post = Apartment(url=link.get_attribute('href'), scraped=False)
+            post.save()
+            print('Added')
+        else:
+            print('Not added')
+
+    driver.close()
+    return HttpResponse('ok check', status=200)
+
+
+def process_parameters(request):
+    unscraped_posts = Apartment.objects.filter(scraped=False)
+
+    if len(unscraped_posts) == 0:
+        return HttpResponse('Nothing to do', status=200)
+
+    firefox_profile = webdriver.FirefoxProfile()
+    firefox_profile.set_preference('permissions.default.image', 2)
+    firefox_profile.set_preference('dom.ipc.plugins.enabled.libflashplayer.so', 'false')
+
+    options = Options()
+    options.headless = True
+    options.preferences.update({"javascript.enabled": False})
+    driver = webdriver.Firefox(options=options)
+
+
+    print(f'unscraped:{len(unscraped_posts)}')
+
+    for post in unscraped_posts:
+        driver.get(post.url)
+        phone_nums = driver.find_elements_by_css_selector('.kontakt-opis a[href*=tel]')
+
+        curr_post = Apartment.objects.get(pk=post.id)
+        curr_post.contact = phone_nums[0].text
+        curr_post.scraped = True
+        curr_post.save()
 
     driver.close()
     return HttpResponse('ok check', status=200)
