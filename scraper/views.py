@@ -6,6 +6,7 @@ import os
 from django.http import HttpResponse
 
 # Create your views here.
+from scraper.models import Apartment
 
 
 def scrape_params(request):
@@ -27,7 +28,8 @@ def scrape_params(request):
     post_url_list = driver.find_elements_by_css_selector('.seznam [itemprop*=name] a')
 
     for link in post_url_list:
-        print(link.get_attribute('href'))
+        post = Apartment(url=link.get_attribute('href'), scraped=False)
+        post.save()
 
     driver.close()
     return HttpResponse('ok check', status=200)

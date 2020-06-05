@@ -5,14 +5,12 @@ from django.utils import timezone
 
 
 class Apartment(models.Model):
-    url = models.CharField()
-    title = models.CharField()
-    rent = models.IntegerField()
-    contact = models.CharField()
+    url = models.CharField(max_length=255)
+    title = models.CharField(max_length=244, null=True)
+    rent = models.IntegerField(null=True)
+    contact = models.CharField(max_length=255, null=True)
+    scraped = models.BooleanField()
 
     def __str__(self):
-        return self.title + ": " + self.contact
+        return self.url
 
-class ApartmentListings(models.Model):
-    lastPostUrl = models.CharField()
-    lastPostTimestamp = models.DateTimeField(default=timezone.now)
