@@ -1,0 +1,14 @@
+<html>
+<head>
+
+</head>
+<body>
+{% for post in apartments %}
+<p>{{ post.url }}</p>
+<p>{{ post.title }}</p>
+<p>{{ post.rent }}</p>
+<p>{{ post.contact }}</p>
+<p>{{ post.scraped }}</p>
+{% endfor %}
+</body>
+</html>

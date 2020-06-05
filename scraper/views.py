@@ -1,3 +1,4 @@
+from django.views.generic import ListView
 from selenium import webdriver
 from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
 from selenium.webdriver.common.keys import Keys
@@ -42,6 +43,7 @@ def scrape_params(request):
 
 def process_parameters(request):
     unscraped_posts = Apartment.objects.filter(scraped=False)
+    post_container_sel = '#podrobnosti'
 
     if len(unscraped_posts) == 0:
         return HttpResponse('Nothing to do', status=200)
@@ -60,12 +62,21 @@ def process_parameters(request):
 
     for post in unscraped_posts:
         driver.get(post.url)
-        phone_nums = driver.find_elements_by_css_selector('.kontakt-opis a[href*=tel]')
+        phone_nums = driver.find_element_by_css_selector(f'{post_container_sel} .kontakt-opis a[href*=tel]').text
+        title = driver.find_element_by_css_selector('.podrobnosti-naslov').text
+        rent = driver.find_element_by_css_selector(f'{post_container_sel} .cena').text
+        title = driver.find_element_by_css_selector(f'{post_container_sel} #opis .kratek .rdeca').text
 
         curr_post = Apartment.objects.get(pk=post.id)
-        curr_post.contact = phone_nums[0].text
+        curr_post.contact = phone_nums
+        curr_post.title = title
+        curr_post.rent = rent
         curr_post.scraped = True
         curr_post.save()
 
     driver.close()
     return HttpResponse('ok check', status=200)
+
+class ApartmentListView(ListView):
+    model = Apartment
+    context_object_name = 'apartments'
