@@ -11,17 +11,17 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AddField(
-            model_name='scraper',
+            model_name='apartment',
             name='contact',
             field=models.CharField(max_length=255, null=True),
         ),
         migrations.AddField(
-            model_name='scraper',
+            model_name='apartment',
             name='rent',
             field=models.IntegerField(null=True),
         ),
         migrations.AddField(
-            model_name='scraper',
+            model_name='apartment',
             name='title',
             field=models.CharField(max_length=244, null=True),
         ),
