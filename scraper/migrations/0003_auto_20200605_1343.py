@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AlterField(
-            model_name='scraper',
+            model_name='apartment',
             name='rent',
             field=models.CharField(max_length=255, null=True),
         ),
