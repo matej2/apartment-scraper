@@ -1,5 +1,6 @@
 from django.views.generic import ListView
 from selenium import webdriver
+from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
 from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.firefox.options import Options
@@ -10,10 +11,8 @@ from django.http import HttpResponse
 from scraper.models import Apartment
 
 
-def scrape_params(request):
-    # binary_dir = os.path.join('opt', 'geckodriver')
-    # binary = FirefoxBinary(binary_dir)
-
+def init_ff():
+    binary_dir = os.path.abspath(os.path.join('target', 'geckodriver.exe'))
     firefox_profile = webdriver.FirefoxProfile()
     firefox_profile.set_preference('permissions.default.image', 2)
     firefox_profile.set_preference('dom.ipc.plugins.enabled.libflashplayer.so', 'false')
@@ -21,7 +20,12 @@ def scrape_params(request):
     options = Options()
     options.headless = True
     options.preferences.update({"javascript.enabled": False})
-    driver = webdriver.Firefox(options=options)
+    driver = webdriver.Firefox(options=options, firefox_profile=firefox_profile, executable_path=binary_dir)
+    return driver
+
+
+def scrape_params(request):
+    driver = init_ff()
 
     # Make sure that list ordering is 'by latest'
     driver.get(
@@ -48,14 +52,7 @@ def process_parameters(request):
     if len(unscraped_posts) == 0:
         return HttpResponse('Nothing to do', status=200)
 
-    firefox_profile = webdriver.FirefoxProfile()
-    firefox_profile.set_preference('permissions.default.image', 2)
-    firefox_profile.set_preference('dom.ipc.plugins.enabled.libflashplayer.so', 'false')
-
-    options = Options()
-    options.headless = True
-    options.preferences.update({"javascript.enabled": False})
-    driver = webdriver.Firefox(options=options)
+    driver = init_ff()
 
 
     print(f'unscraped:{len(unscraped_posts)}')
@@ -63,7 +60,6 @@ def process_parameters(request):
     for post in unscraped_posts:
         driver.get(post.url)
         phone_nums = driver.find_element_by_css_selector(f'{post_container_sel} .kontakt-opis a[href*=tel]').text
-        title = driver.find_element_by_css_selector('.podrobnosti-naslov').text
         rent = driver.find_element_by_css_selector(f'{post_container_sel} .cena').text
         title = driver.find_element_by_css_selector(f'{post_container_sel} #opis .kratek .rdeca').text
 
