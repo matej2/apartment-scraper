@@ -15,11 +15,12 @@ Including another URLconf
 """
 from django.conf.urls import url
 from django.contrib import admin
-from scraper.views import scrape_params, process_parameters, ApartmentListView
+from scraper.views import scrape_params, process_parameters, ApartmentListView, add_contact
 
 urlpatterns = [
     url('parameters/scrape', scrape_params),
     url('parameters/process', process_parameters),
+    url('parameters/save', add_contact),
     url(r'^admin/', admin.site.urls),
     url('parameters', ApartmentListView.as_view())
 ]
