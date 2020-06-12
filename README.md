@@ -1,5 +1,9 @@
 # apartment-scraper
 
+> When I was looking for an apartment, most of the times I had to call to get more information. After a while, I had a lot of contacts and I became confused who is calling.
+
+This is a scraper which reads parameters about apartments from various sites (for example nepremičnine). It then backups any data related to apartment into Google Contacts, so you can have clear and organized communication.
+
 ## Installation and setup
 
 1. Clone repository
