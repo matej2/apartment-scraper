@@ -9,7 +9,8 @@ class Apartment(models.Model):
     title = models.CharField(max_length=244, null=True)
     rent = models.CharField(max_length=255, null=True)
     contact = models.CharField(max_length=255, null=True)
-    scraped = models.BooleanField()
+    status = models.SmallIntegerField(null=True, default=0)
+    created = models.DateField(null=True, default=timezone.now)
 
     def __str__(self):
         return self.url
