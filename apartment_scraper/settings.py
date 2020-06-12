@@ -120,5 +120,9 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+# Scrape settings
 
-TEST = 'neki'
+SCRAPE_LIMIT=3
+POST_LISTING = [
+    "https://www.nepremicnine.net/oglasi-oddaja/ljubljana-mesto/ljubljana-bezigrad,ljubljana-moste-polje/stanovanje/garsonjera,1-sobno,1.5-sobno/?s=16"
+]
