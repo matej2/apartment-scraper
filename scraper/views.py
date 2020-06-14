@@ -51,7 +51,7 @@ def scrape_params(request):
                 break
 
     driver.close()
-    return HttpResponse('ok', status=200)
+    return JsonResponse(status=200)
 
 
 def process_parameters(request):
@@ -80,7 +80,7 @@ def process_parameters(request):
         curr_post.save()
 
     driver.close()
-    return HttpResponse('ok check', status=200)
+    return JsonResponse(status=200)
 
 
 def add_contact(request):
@@ -95,7 +95,7 @@ def add_contact(request):
     print(f'unscraped:{len(unscraped_posts)}')
 
 
-    # The file token.pickle stores the user's access and refresh tokens, and is
+    # The file token.pickle is
     # created automatically when the authorization flow completes for the first
     # time.
     if os.path.exists('token.pickle'):
@@ -149,11 +149,12 @@ def add_contact(request):
 def apartment_list_view(request):
     return JsonResponse({
         'apartments': list(Apartment.objects.all().values())
-    })
+    }, status=200)
 
 
 def notify(updated_cnt):
-    for wh in settings.DISCORD_WH:
-        requests.post(wh, data={
-            'content': f'Updated {updated_cnt} posts'
-        })
+    if updated_cnt > 0:
+        for wh in settings.DISCORD_WH:
+            requests.post(wh, data={
+                'content': f'Updated {updated_cnt} posts'
+            })
