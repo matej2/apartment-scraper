@@ -86,7 +86,8 @@ def process_parameters(request):
 def add_contact(request):
     creds = None
 
-    unscraped_posts = Apartment.objects.filter(status = 1)
+    unscraped_posts = Apartment.objects.filter(status=1)
+    notify(len(unscraped_posts))
 
     if len(unscraped_posts) == 0:
         return HttpResponse('Nothing to do', status=200)
@@ -113,8 +114,6 @@ def add_contact(request):
             pickle.dump(creds, token)
 
     service = build('people', 'v1', credentials=creds)
-
-    # Call the People API
 
     for post in unscraped_posts:
         curr_post = Apartment.objects.get(pk=post.id)
