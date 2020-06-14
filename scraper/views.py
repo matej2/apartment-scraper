@@ -1,18 +1,18 @@
 from __future__ import print_function
-from django.views.generic import ListView
-from selenium import webdriver
-from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
-from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.firefox.options import Options
-import os
-from django.http import HttpResponse
-import pickle
-import os.path
-from googleapiclient.discovery import build
-from google_auth_oauthlib.flow import InstalledAppFlow
-from google.auth.transport.requests import Request
 
+import os
+import os.path
+import pickle
+
+from django.http import HttpResponse, JsonResponse
+from google.auth.transport.requests import Request
+from google_auth_oauthlib.flow import InstalledAppFlow
+from googleapiclient.discovery import build
+from rest_framework.decorators import api_view
+from selenium import webdriver
+from selenium.webdriver.firefox.options import Options
+
+from apartment_scraper import settings
 # Create your views here.
 from scraper.models import Apartment
 
@@ -35,25 +35,26 @@ def scrape_params(request):
     driver = init_ff()
 
     # Make sure that list ordering is 'by latest'
-    driver.get(
-        "https://www.nepremicnine.net/oglasi-oddaja/ljubljana-mesto/ljubljana-bezigrad,ljubljana-moste-polje/stanovanje/garsonjera,1-sobno,1.5-sobno/?s=16")
+    for listing in settings.POST_LISTING:
+        driver.get(listing)
+        post_list = driver.find_elements_by_css_selector('.seznam [itemprop*=name] a')
 
-    post_url_list = driver.find_elements_by_css_selector('.seznam [itemprop*=name] a')
-
-    for link in post_url_list:
-        if len(Apartment.objects.filter(url=link.get_attribute('href'))) == 0:
-            post = Apartment(url=link.get_attribute('href'), scraped=False)
-            post.save()
-            print('Added')
-        else:
-            print('Not added')
+        for post in post_list:
+            link = post.get_attribute('href')
+            if len(Apartment.objects.filter(url=link)) == 0:
+                post = Apartment(url=link)
+                post.save()
+                print('Added')
+            else:
+                print('Not added, stopping')
+                break
 
     driver.close()
-    return HttpResponse('ok check', status=200)
+    return HttpResponse('ok', status=200)
 
 
 def process_parameters(request):
-    unscraped_posts = Apartment.objects.filter(scraped=False)
+    unscraped_posts = Apartment.objects.filter(status = 0)
     post_container_sel = '#podrobnosti'
 
     if len(unscraped_posts) == 0:
@@ -74,7 +75,7 @@ def process_parameters(request):
         curr_post.contact = phone_nums
         curr_post.title = title
         curr_post.rent = rent
-        curr_post.scraped = True
+        curr_post.status = 1
         curr_post.save()
 
     driver.close()
@@ -83,6 +84,14 @@ def process_parameters(request):
 
 def add_contact(request):
     creds = None
+
+    unscraped_posts = Apartment.objects.filter(status = 1)
+
+    if len(unscraped_posts) == 0:
+        return HttpResponse('Nothing to do', status=200)
+
+    print(f'unscraped:{len(unscraped_posts)}')
+
 
     # The file token.pickle stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
@@ -105,26 +114,39 @@ def add_contact(request):
     service = build('people', 'v1', credentials=creds)
 
     # Call the People API
-    print('Insert new contact')
-    service.people().createContact(body={
-        "names": [
-            {
-                "givenName": "Samkit"
-            }
-        ],
-        "phoneNumbers": [
-            {
-                'value': "8600086024"
-            }
-        ],
-        "emailAddresses": [
-            {
-                'value': 'samkit5495@gmail.com'
-            }
-        ]
-    }).execute()
+
+    for post in unscraped_posts:
+        curr_post = Apartment.objects.get(pk=post.id)
+
+        service.people().createContact(body={
+            "names": [
+                {
+                    "givenName": curr_post.title
+                }
+            ],
+            "phoneNumbers": [
+                {
+                    'value': curr_post.contact
+                }
+            ],
+            "biographies": [
+                {
+                    "value": f"Rent: {curr_post.rent}"
+                }
+            ],
+            "urls": [
+                {
+                    "value": curr_post.url
+                }
+            ]
+        }).execute()
+        Apartment.objects.get(pk=post.id).delete()
+
     return HttpResponse('ok', status=200)
 
-class ApartmentListView(ListView):
-    model = Apartment
-    context_object_name = 'apartments'
+
+@api_view(['GET'])
+def apartment_list_view(request):
+    return JsonResponse({
+        'apartments': list(Apartment.objects.all().values())
+    })
