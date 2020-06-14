@@ -66,18 +66,19 @@ def process_parameters(request):
 
     print(f'unscraped:{len(unscraped_posts)}')
 
-    for post in unscraped_posts:
-        driver.get(post.url)
-        phone_nums = driver.find_element_by_css_selector(f'{post_container_sel} .kontakt-opis a[href*=tel]').text
-        rent = driver.find_element_by_css_selector(f'{post_container_sel} .cena').text
-        title = driver.find_element_by_css_selector(f'{post_container_sel} #opis .kratek .rdeca').text
+    for site in settings.SITES:
+        for post in unscraped_posts:
+            driver.get(post.url)
+            phone_nums = driver.find_element_by_css_selector(f'{post_container_sel} .kontakt-opis a[href*=tel]').text
+            rent = driver.find_element_by_css_selector(f'{post_container_sel} .cena').text
+            title = driver.find_element_by_css_selector(f'{post_container_sel} #opis .kratek .rdeca').text
 
-        curr_post = Apartment.objects.get(pk=post.id)
-        curr_post.contact = phone_nums
-        curr_post.title = title
-        curr_post.rent = rent
-        curr_post.status = 1
-        curr_post.save()
+            curr_post = Apartment.objects.get(pk=post.id)
+            curr_post.contact = phone_nums
+            curr_post.title = title
+            curr_post.rent = rent
+            curr_post.status = 1
+            curr_post.save()
 
     driver.close()
     return HttpResponse('ok check', status=200)

@@ -125,9 +125,24 @@ STATIC_URL = '/static/'
 # Scrape settings
 
 SCRAPE_LIMIT=3
-POST_LISTING = [
-    "https://www.nepremicnine.net/oglasi-oddaja/ljubljana-mesto/ljubljana-bezigrad,ljubljana-moste-polje/stanovanje/garsonjera,1-sobno,1.5-sobno/?s=16"
+SITES = [
+    {
+        'name': 'nepremicnine',
+        'listings': [
+            "https://www.nepremicnine.net/oglasi-oddaja/ljubljana-mesto/ljubljana-bezigrad,ljubljana-moste-polje/stanovanje/garsonjera,1-sobno,1.5-sobno/?s=16",
+        ],
+        'selectors': {
+            'post_container': '#podrobnosti',
+            'phone': f'.kontakt-opis a[href*=tel]',
+            'rent': f'.cena',
+            'title': f' #opis .kratek .rdeca',
+        }
+    }
 ]
+
+phone_nums = driver.find_element_by_css_selector().text
+rent = driver.find_element_by_css_selector(f'{post_container_sel} .cena').text
+title = driver.find_element_by_css_selector().text
 
 # Notification settings
 DISCORD_WH = [
