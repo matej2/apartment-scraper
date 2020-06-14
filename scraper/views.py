@@ -4,6 +4,7 @@ import os
 import os.path
 import pickle
 
+from django.contrib.sites import requests
 from django.http import HttpResponse, JsonResponse
 from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -150,3 +151,10 @@ def apartment_list_view(request):
     return JsonResponse({
         'apartments': list(Apartment.objects.all().values())
     })
+
+
+def notify(updated_cnt):
+    for wh in settings.DISCORD_WH:
+        requests.post(wh, data={
+            'content': f'Updated {updated_cnt} posts'
+        })

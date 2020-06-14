@@ -129,6 +129,11 @@ POST_LISTING = [
     "https://www.nepremicnine.net/oglasi-oddaja/ljubljana-mesto/ljubljana-bezigrad,ljubljana-moste-polje/stanovanje/garsonjera,1-sobno,1.5-sobno/?s=16"
 ]
 
+# Notification settings
+DISCORD_WH = [
+    'https://discordapp.com/api/webhooks/721659204775051274/yj_JU9JSY7XdXkssbO2ExAmyi9FFXMk4rDMDxBcQ9PptrlEniRtsKyDgg1frawW1l1LO'
+]
+
 django_heroku.settings(locals())
 
 REST_FRAMEWORK = {
