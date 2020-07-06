@@ -122,3 +122,6 @@ STATIC_URL = '/static/'
 
 
 TEST = 'neki'
+
+# Notifications
+DISCORD = "https://discordapp.com/api/webhooks/652499253515649040/yS3AauwtwZNeZdMRTqx-p_jk0bG2e5jR-WtbsTC9nuLYwbNVrl-WLhL6UqKFaNGIvfJn"

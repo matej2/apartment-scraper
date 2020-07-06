@@ -19,7 +19,8 @@ from scraper.models import Apartment
 SCOPES = ['https://www.googleapis.com/auth/contacts']
 
 def init_ff():
-    binary_dir = os.path.abspath(os.path.join('target', 'geckodriver.exe'))
+    binary_dir = os.path.abspath(os.path.join('target', 'geckodriver'))
+    print(binary_dir)
     firefox_profile = webdriver.FirefoxProfile()
     firefox_profile.set_preference('permissions.default.image', 2)
     firefox_profile.set_preference('dom.ipc.plugins.enabled.libflashplayer.so', 'false')
