@@ -11,9 +11,10 @@ django = "*"
 google-api-python-client = "*"
 "google-auth-httplib2" = "*"
 google-auth-oauthlib = "*"
-apscheduler = "*"
+django-heroku = "*"
 gunicorn = "*"
-django-heroku = "==0.3.1"
+djangorestframework = "*"
+apscheduler = "*"
 
 [requires]
 python_version = "3.8"

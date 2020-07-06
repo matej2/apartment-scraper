@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import os
+import django_heroku
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -37,7 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'scraper.apps.ScraperConfig'
+    'scraper.apps.ScraperConfig',
+    'rest_framework.authtoken'
 ]
 
 MIDDLEWARE = [
@@ -120,8 +122,25 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+# Scrape settings
 
-TEST = 'neki'
+SCRAPE_LIMIT=3
+POST_LISTING = [
+    "https://www.nepremicnine.net/oglasi-oddaja/ljubljana-mesto/ljubljana-bezigrad,ljubljana-moste-polje/stanovanje/garsonjera,1-sobno,1.5-sobno/?s=16"
+]
 
+# Notification settings
+DISCORD_WH = [
+    'https://discordapp.com/api/webhooks/721659204775051274/yj_JU9JSY7XdXkssbO2ExAmyi9FFXMk4rDMDxBcQ9PptrlEniRtsKyDgg1frawW1l1LO'
+]
+
+django_heroku.settings(locals())
+
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.IsAuthenticated',),
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ]
+}
 # Notifications
 DISCORD = "https://discordapp.com/api/webhooks/652499253515649040/yS3AauwtwZNeZdMRTqx-p_jk0bG2e5jR-WtbsTC9nuLYwbNVrl-WLhL6UqKFaNGIvfJn"

@@ -15,12 +15,14 @@ Including another URLconf
 """
 from django.conf.urls import url
 from django.contrib import admin
-from scraper.views import scrape_params, process_parameters, ApartmentListView, add_contact
+from scraper.views import scrape_params, process_parameters, apartment_list_view, add_contact
+from rest_framework.authtoken.views import obtain_auth_token
 
 urlpatterns = [
     url('parameters/scrape', scrape_params),
     url('parameters/process', process_parameters),
     url('parameters/save', add_contact),
     url(r'^admin/', admin.site.urls),
-    url('parameters', ApartmentListView.as_view())
+    url('parameters', apartment_list_view),
+    url('api/auth', obtain_auth_token),
 ]

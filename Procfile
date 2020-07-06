@@ -1,2 +1,2 @@
+web: gunicorn myproject.wsgi
 clock: python clock.py
-web: gunicorn pyshop.wsgi
