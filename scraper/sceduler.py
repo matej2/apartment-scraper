@@ -3,13 +3,6 @@ from apscheduler.schedulers import asyncio
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 from apartment_scraper import settings
-from scraper.views import scrape_params,process_parameters,add_contact
-
-
-def main():
-    scrape_params(None)
-    process_parameters(None)
-    add_contact(None)
 
 
 if __name__ == '__main__':

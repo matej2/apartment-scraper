@@ -9,6 +9,7 @@ from django.http import HttpResponse, JsonResponse
 from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
+from rest_framework import viewsets
 from rest_framework.decorators import api_view
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
@@ -16,6 +17,7 @@ from selenium.webdriver.firefox.options import Options
 from apartment_scraper import settings
 # Create your views here.
 from scraper.models import Apartment
+from .serializers import ApartmentSerializer
 
 SCOPES = ['https://www.googleapis.com/auth/contacts']
 
@@ -84,16 +86,13 @@ def process_parameters(request):
     return JsonResponse(status=200)
 
 
-def add_contact(request):
+def add_contact(driver, apartment):
+    if driver == None:
+        return JsonResponse(status=500)
     creds = None
 
-    unscraped_posts = Apartment.objects.filter(status=1)
-    notify(len(unscraped_posts))
-
-    if len(unscraped_posts) == 0:
+    if apartment == None:
         return HttpResponse('Nothing to do', status=200)
-
-    print(f'unscraped:{len(unscraped_posts)}')
 
 
     # The file token.pickle is
@@ -102,6 +101,7 @@ def add_contact(request):
     if os.path.exists('token.pickle'):
         with open('token.pickle', 'rb') as token:
             creds = pickle.load(token)
+
     # If there are no (valid) credentials available, let the user log in.
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
@@ -116,41 +116,76 @@ def add_contact(request):
 
     service = build('people', 'v1', credentials=creds)
 
-    for post in unscraped_posts:
-        curr_post = Apartment.objects.get(pk=post.id)
-
-        service.people().createContact(body={
-            "names": [
-                {
-                    "givenName": curr_post.title
-                }
-            ],
-            "phoneNumbers": [
-                {
-                    'value': curr_post.contact
-                }
-            ],
-            "biographies": [
-                {
-                    "value": f"Rent: {curr_post.rent}"
-                }
-            ],
-            "urls": [
-                {
-                    "value": curr_post.url
-                }
-            ]
-        }).execute()
-        Apartment.objects.get(pk=post.id).delete()
+    service.people().createContact(body={
+        "names": [
+            {
+                "givenName": apartment.title
+            }
+        ],
+        "phoneNumbers": [
+            {
+                'value': apartment.contact
+            }
+        ],
+        "biographies": [
+            {
+                "value": f"Rent: {apartment.rent}"
+            }
+        ],
+        "urls": [
+            {
+                "value": apartment.url
+            }
+        ]
+    }).execute()
 
     return HttpResponse('ok', status=200)
 
 
 @api_view(['GET'])
-def apartment_list_view(request):
+def run_all(request):
+    driver = init_ff()
+    # Make sure that list ordering is 'by latest'
+    for listing in settings.POST_LISTING:
+        driver.get(listing)
+        post_list = driver.find_elements_by_css_selector('.seznam [itemprop*=name] a')
+
+        for post in post_list:
+            link = post.get_attribute('href')
+            if len(Apartment.objects.filter(url=link)) == 0:
+                post_container_sel = '#podrobnosti'
+
+                driver.get(link)
+
+                # Scrape attributes
+                phone_nums = driver.find_element_by_css_selector(
+                    f'{post_container_sel} .kontakt-opis a[href*=tel]').text
+                rent = driver.find_element_by_css_selector(f'{post_container_sel} .cena').text
+                title = driver.find_element_by_css_selector(f'{post_container_sel} #opis .kratek .rdeca').text
+
+                # Save attributes
+                curr_post = Apartment(url=link)
+                curr_post.contact = phone_nums
+                curr_post.title = title
+                curr_post.rent = rent
+                curr_post.status = 1
+                curr_post.save()
+
+                add_contact(driver, curr_post)
+
+                print(f'Added {title}')
+            else:
+                print('No more left, stopping')
+                #break
+    driver.close()
     return JsonResponse({
-        'apartments': list(Apartment.objects.all().values())
+        'status': 'finished'
     }, status=200)
+
+
+class ProductRESTView(viewsets.ModelViewSet):
+    queryset = Apartment.objects.all()
+    serializer_class = ApartmentSerializer
 
 
 def notify(updated_cnt):
