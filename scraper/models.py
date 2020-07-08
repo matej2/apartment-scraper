@@ -15,3 +15,9 @@ class Apartment(models.Model):
     def __str__(self):
         return self.url
 
+class Listing(models.Model):
+    url = models.CharField(max_length=255)
+    limit = models.IntegerField(null=True)
+    title_selector = models.CharField(max_length=255)
+    rent_selector = models.CharField(max_length=255)
+    contact_selector = models.CharField(max_length=255)
