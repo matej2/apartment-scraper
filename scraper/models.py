@@ -16,9 +16,10 @@ class Apartment(models.Model):
         return self.url
 
 class Listing(models.Model):
-    url = models.CharField(max_length=255)
-    limit = models.IntegerField(null=True)
-    post_selector = models.CharField(max_length=255)
-    title_selector = models.CharField(max_length=255)
-    rent_selector = models.CharField(max_length=255)
-    contact_selector = models.CharField(max_length=255)
+    url = models.CharField(max_length=500)
+    limit = models.IntegerField(null=True, default=0)
+    post_link_list_selector = models.CharField(max_length=255, default='')
+    post_container_selector = models.CharField(max_length=255, default='')
+    title_selector = models.CharField(max_length=255, default='')
+    rent_selector = models.CharField(max_length=255, default='')
+    contact_selector = models.CharField(max_length=255, default='')
