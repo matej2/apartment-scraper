@@ -116,7 +116,7 @@ def add_contact(driver, apartment):
 
     service = build('people', 'v1', credentials=creds)
 
-    service.people().createContact(body={
+    created_obj = service.people().createContact(body={
         "names": [
             {
                 "givenName": apartment.title
@@ -139,7 +139,10 @@ def add_contact(driver, apartment):
         ]
     }).execute()
 
-    return HttpResponse('ok', status=200)
+    if created_obj != None:
+        return True
+    else:
+        return False
 
 
 @api_view(['GET'])
@@ -149,20 +152,19 @@ def run_all(request):
     listings = Listing.objects.all()
     for listing in listings:
         driver.get(listing.url)
-        post_list = driver.find_elements_by_css_selector('.seznam [itemprop*=name] a')
+        post_list = driver.find_elements_by_css_selector(listing.post_link_list_selector)
 
         for post in post_list:
             link = post.get_attribute('href')
             if len(Apartment.objects.filter(url=link)) == 0:
-                post_container_sel = listing.post_selector
+                post = listing.post_container_selector
 
                 driver.get(link)
 
                 # Scrape attributes
-                phone_nums = driver.find_element_by_css_selector(
-                    f'{post_container_sel} .kontakt-opis a[href*=tel]').text
-                rent = driver.find_element_by_css_selector(f'{post_container_sel} .cena').text
-                title = driver.find_element_by_css_selector(f'{post_container_sel} #opis .kratek .rdeca').text
+                phone_nums = driver.find_element_by_css_selector(f'{post} {listing.contact_selector}').text
+                rent = driver.find_element_by_css_selector(f'{post} {listing.rent_selector}').text
+                title = driver.find_element_by_css_selector(f'{post} {listing.title_selector}').text
 
                 # Save attributes
                 curr_post = Apartment(url=link)
@@ -172,9 +174,10 @@ def run_all(request):
                 curr_post.status = 1
                 curr_post.save()
 
-                add_contact(driver, curr_post)
-
-                print(f'Added {title}')
+                if add_contact(driver, curr_post):
+                    print(f'Problem adding {curr_post.title}')
+                else:
+                    print(f'Added {curr_post.title}')
             else:
                 print('No more left, stopping')
                 #break
