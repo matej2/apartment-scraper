@@ -16,7 +16,7 @@ from selenium.webdriver.firefox.options import Options
 
 from apartment_scraper import settings
 # Create your views here.
-from scraper.models import Apartment
+from scraper.models import Apartment, Listing
 from .serializers import ApartmentSerializer
 
 SCOPES = ['https://www.googleapis.com/auth/contacts']
@@ -146,14 +146,15 @@ def add_contact(driver, apartment):
 def run_all(request):
     driver = init_ff()
     # Make sure that list ordering is 'by latest'
-    for listing in settings.POST_LISTING:
-        driver.get(listing)
+    listings = Listing.objects.all()
+    for listing in listings:
+        driver.get(listing.url)
         post_list = driver.find_elements_by_css_selector('.seznam [itemprop*=name] a')
 
         for post in post_list:
             link = post.get_attribute('href')
             if len(Apartment.objects.filter(url=link)) == 0:
-                post_container_sel = '#podrobnosti'
+                post_container_sel = listing.post_selector
 
                 driver.get(link)
 
