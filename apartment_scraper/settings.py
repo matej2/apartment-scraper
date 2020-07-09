@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 
 import os
 import django_heroku
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -145,3 +146,5 @@ REST_FRAMEWORK = {
 }
 # Notifications
 DISCORD = "https://discordapp.com/api/webhooks/652499253515649040/yS3AauwtwZNeZdMRTqx-p_jk0bG2e5jR-WtbsTC9nuLYwbNVrl-WLhL6UqKFaNGIvfJn"
+
+load_dotenv()
