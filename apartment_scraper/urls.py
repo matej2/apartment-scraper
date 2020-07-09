@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.conf.urls import url
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import include
 from rest_framework import routers
 
 from scraper.views import scrape_params, process_parameters, add_contact, run_all
@@ -32,5 +32,5 @@ urlpatterns = [
     url('parameters/run_all', run_all),
     url(r'^admin/', admin.site.urls),
     url('api/auth', obtain_auth_token),
-    path('api/', include(router.urls)),
+    url('api/', include(router.urls)),
 ]

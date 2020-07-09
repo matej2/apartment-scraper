@@ -194,7 +194,6 @@ class ProductRESTView(viewsets.ModelViewSet):
 
 def notify(updated_cnt):
     if updated_cnt > 0:
-        for wh in settings.DISCORD_WH:
-            requests.post(wh, data={
-                'content': f'Updated {updated_cnt} posts'
-            })
+        requests.post(os.environ['DISCORD_WH'], data={
+            'content': f'Updated {updated_cnt} posts'
+        })
