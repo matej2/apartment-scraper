@@ -13,13 +13,6 @@ if __name__ == '__main__':
     for job in scheduler.get_jobs():
         notification += job.func_ref + str(job.trigger.interval) + ', '
 
-    requests.post(
-        settings.DISCORD,
-        data={
-            'content': notification
-        }
-    )
-
     scheduler.start()
     # Execution will block here until Ctrl+C (Ctrl+Break on Windows) is pressed.
     try:
