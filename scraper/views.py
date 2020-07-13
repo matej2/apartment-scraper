@@ -29,7 +29,7 @@ def init_ff():
     firefox_profile.set_preference('dom.ipc.plugins.enabled.libflashplayer.so', 'false')
 
     options = Options()
-    options.headless = True
+    options.headless = False
     options.preferences.update({"javascript.enabled": False})
     driver = webdriver.Firefox(options=options, firefox_profile=firefox_profile, executable_path=binary_dir)
     return driver
@@ -86,9 +86,7 @@ def process_parameters(request):
     return JsonResponse(status=200)
 
 
-def add_contact(driver, apartment):
-    if driver == None:
-        return JsonResponse(status=500)
+def add_contact(apartment):
     creds = None
 
     if apartment == None:
@@ -152,19 +150,22 @@ def run_all(request):
     listings = Listing.objects.all()
     for listing in listings:
         driver.get(listing.url)
-        post_list = driver.find_elements_by_css_selector(listing.post_link_list_selector)
+        #post_list = driver.find_elements_by_css_selector(listing.post_link_list_selector)
 
-        for post in post_list:
+        post_cnt = 0
+        for post in driver.find_elements_by_css_selector(listing.post_link_list_selector):
+            print(f'Printing {post_cnt} link')
+            post_cnt+=1
             link = post.get_attribute('href')
             if len(Apartment.objects.filter(url=link)) == 0:
-                post = listing.post_container_selector
+                post_sel = listing.post_container_selector
 
                 driver.get(link)
 
                 # Scrape attributes
-                phone_nums = driver.find_element_by_css_selector(f'{post} {listing.contact_selector}').text
-                rent = driver.find_element_by_css_selector(f'{post} {listing.rent_selector}').text
-                title = driver.find_element_by_css_selector(f'{post} {listing.title_selector}').text
+                phone_nums = driver.find_element_by_css_selector(f'{post_sel} {listing.contact_selector}').text
+                rent = driver.find_element_by_css_selector(f'{post_sel} {listing.rent_selector}').text
+                title = driver.find_element_by_css_selector(f'{post_sel} {listing.title_selector}').text
 
                 # Save attributes
                 curr_post = Apartment(url=link)
@@ -174,13 +175,12 @@ def run_all(request):
                 curr_post.status = 1
                 curr_post.save()
 
-                if add_contact(driver, curr_post):
-                    print(f'Problem adding {curr_post.title}')
-                else:
+                if add_contact(curr_post):
                     print(f'Added {curr_post.title}')
+                else:
+                    print(f'Problem adding {curr_post.title}, phone num: {curr_post.contact}')
             else:
-                print('No more left, stopping')
-                #break
+                print(f'No more left in listing {listing.url}')
     driver.close()
     return JsonResponse({
         'status': 'finished'
