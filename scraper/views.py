@@ -13,6 +13,7 @@ from rest_framework import viewsets
 from rest_framework.decorators import api_view
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
+from webdriverdownloader import GeckoDriverDownloader
 
 from apartment_scraper import settings
 # Create your views here.
@@ -34,6 +35,11 @@ def init_ff():
     driver = webdriver.Firefox(options=options, firefox_profile=firefox_profile, executable_path=binary_dir)
     return driver
 
+def get_driver():
+    GECKO_VER = 'v0.26.0'
+    gdd = GeckoDriverDownloader()
+    if len(os.listdir(gdd.get_download_path(GECKO_VER))) == 0:
+        gdd.download_and_install(GECKO_VER)
 
 def scrape_params(request):
     driver = init_ff()
@@ -145,6 +151,7 @@ def add_contact(apartment):
 
 @api_view(['GET'])
 def run_all(request):
+    get_driver()
     driver = init_ff()
     # Make sure that list ordering is 'by latest'
     listings = Listing.objects.all()
@@ -197,3 +204,4 @@ def notify(updated_cnt):
         requests.post(os.environ['DISCORD_WH'], data={
             'content': f'Updated {updated_cnt} posts'
         })
+
