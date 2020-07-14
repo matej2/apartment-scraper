@@ -18,9 +18,9 @@ from webdriverdownloader import GeckoDriverDownloader
 from apartment_scraper import settings
 # Create your views here.
 from scraper.models import Apartment, Listing
+from .GoogleUtilities import get_creds
 from .serializers import ApartmentSerializer
 
-SCOPES = ['https://www.googleapis.com/auth/contacts']
 
 def init_ff():
     binary_dir = os.path.abspath(os.path.join('target', 'geckodriver'))
@@ -93,30 +93,7 @@ def process_parameters(request):
 
 
 def add_contact(apartment):
-    creds = None
-
-    if apartment == None:
-        return HttpResponse('Nothing to do', status=200)
-
-
-    # The file token.pickle is
-    # created automatically when the authorization flow completes for the first
-    # time.
-    if os.path.exists('token.pickle'):
-        with open('token.pickle', 'rb') as token:
-            creds = pickle.load(token)
-
-    # If there are no (valid) credentials available, let the user log in.
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                'credentials.json', SCOPES)
-            creds = flow.run_local_server(port=0)
-        # Save the credentials for the next run
-        with open('token.pickle', 'wb') as token:
-            pickle.dump(creds, token)
+    creds = get_creds('https://www.googleapis.com/auth/contacts')
 
     service = build('people', 'v1', credentials=creds)
 
@@ -147,6 +124,26 @@ def add_contact(apartment):
         return True
     else:
         return False
+
+def add_sheet_data(values):
+    creds = get_creds('https://www.googleapis.com/auth/spreadsheets')
+    service = build('sheets', 'v4', credentials=creds)
+
+    spreadsheet_id = os.environ('spreadsheet_id)
+    worksheet_name = 'logs'
+    cell_range_insert = 'A1'
+
+    value_range_body = {
+        'majorDimension': 'COLUMNS',
+        'values': values
+    }
+
+    service.spreadsheets().values().append(
+        spreadsheetId=spreadsheet_id,
+        valueInputOption='USER_ENTERED',
+        range=worksheet_name + cell_range_insert,
+        body=value_range_body
+    ).execute()
 
 
 @api_view(['GET'])
