@@ -2,18 +2,14 @@ from __future__ import print_function
 
 import os
 import os.path
-import pickle
 
 from django.contrib.sites import requests
 from django.http import HttpResponse, JsonResponse
-from google.auth.transport.requests import Request
-from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from rest_framework import viewsets
 from rest_framework.decorators import api_view
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
-from webdriverdownloader import GeckoDriverDownloader
 
 from apartment_scraper import settings
 # Create your views here.
@@ -35,11 +31,7 @@ def init_ff():
     driver = webdriver.Firefox(options=options, firefox_profile=firefox_profile, executable_path=binary_dir)
     return driver
 
-def get_driver():
-    GECKO_VER = 'v0.26.0'
-    gdd = GeckoDriverDownloader()
-    if len(os.listdir(gdd.get_download_path(GECKO_VER))) == 0:
-        gdd.download_and_install(GECKO_VER)
+
 
 def scrape_params(request):
     driver = init_ff()
@@ -129,7 +121,7 @@ def add_sheet_data(values):
     creds = get_creds('https://www.googleapis.com/auth/spreadsheets')
     service = build('sheets', 'v4', credentials=creds)
 
-    spreadsheet_id = os.environ('spreadsheet_id)
+    spreadsheet_id = os.environ('spreadsheet_id')
     worksheet_name = 'logs'
     cell_range_insert = 'A1'
 
@@ -148,19 +140,19 @@ def add_sheet_data(values):
 
 @api_view(['GET'])
 def run_all(request):
-    get_driver()
     driver = init_ff()
     # Make sure that list ordering is 'by latest'
     listings = Listing.objects.all()
     for listing in listings:
         driver.get(listing.url)
-        #post_list = driver.find_elements_by_css_selector(listing.post_link_list_selector)
 
         post_cnt = 0
-        for post in driver.find_elements_by_css_selector(listing.post_link_list_selector):
+        link_list = [post.get_attribute('href') for post in driver.find_elements_by_css_selector(listing.post_link_list_selector)]
+
+        for link in link_list:
             print(f'Printing {post_cnt} link')
             post_cnt+=1
-            link = post.get_attribute('href')
+
             if len(Apartment.objects.filter(url=link)) == 0:
                 post_sel = listing.post_container_selector
 
