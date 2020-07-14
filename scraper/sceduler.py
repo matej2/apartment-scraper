@@ -1,13 +1,23 @@
-import requests
+import os
+
 from apscheduler.schedulers import asyncio
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
-from apartment_scraper import settings
+from webdriverdownloader import GeckoDriverDownloader
 
+from scraper.views import run_all
+
+
+def get_driver():
+    GECKO_VER = 'v0.26.0'
+    gdd = GeckoDriverDownloader()
+    if len(os.listdir(gdd.get_download_path(GECKO_VER))) == 0:
+        gdd.download_and_install(GECKO_VER)
 
 if __name__ == '__main__':
     scheduler = AsyncIOScheduler()
-    scheduler.add_job(main, trigger=IntervalTrigger(hours=3))
+    get_driver()
+    scheduler.add_job(run_all, trigger=IntervalTrigger(hours=3))
 
     notification = ""
     for job in scheduler.get_jobs():

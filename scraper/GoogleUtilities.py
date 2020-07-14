@@ -1,8 +1,11 @@
+import os
+import pickle
+
+from google.auth.transport.requests import Request
+from google_auth_oauthlib.flow import InstalledAppFlow
+
 def get_creds(SCOPES):
     creds = None
-
-    if apartment == None:
-        return HttpResponse('Nothing to do', status=200)
 
     # The file token.pickle is
     # created automatically when the authorization flow completes for the first
