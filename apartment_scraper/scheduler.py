@@ -1,14 +1,14 @@
 import os
 import sys
-import requests
 
+import requests
 from apscheduler.schedulers import asyncio
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 from webdriverdownloader import GeckoDriverDownloader
 
 from apartment_scraper import settings
-from scraper.views import run_all
+from scraper.common import main
 
 settings.configure()
 
@@ -32,11 +32,7 @@ sys.excepthook = my_except_hook
 if __name__ == '__main__':
     scheduler = AsyncIOScheduler()
     get_driver()
-    scheduler.add_job(run_all, trigger=IntervalTrigger(hours=3))
-
-    notification = ""
-    for job in scheduler.get_jobs():
-        notification += job.func_ref + str(job.trigger.interval) + ', '
+    scheduler.add_job(main, trigger=IntervalTrigger(hours=3))
 
     scheduler.start()
     # Execution will block here until Ctrl+C (Ctrl+Break on Windows) is pressed.

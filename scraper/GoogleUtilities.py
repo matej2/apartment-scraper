@@ -3,6 +3,10 @@ import pickle
 
 from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
+from googleapiclient.discovery import build
+
+from .GoogleUtilities import get_creds
+
 
 def get_creds(SCOPES):
     creds = None
@@ -26,3 +30,57 @@ def get_creds(SCOPES):
         with open('token.pickle', 'wb') as token:
             pickle.dump(creds, token)
     return creds
+
+def add_contact(apartment):
+    creds = get_creds('https://www.googleapis.com/auth/contacts')
+
+    service = build('people', 'v1', credentials=creds)
+
+    created_obj = service.people().createContact(body={
+        "names": [
+            {
+                "givenName": apartment.title
+            }
+        ],
+        "phoneNumbers": [
+            {
+                'value': apartment.contact
+            }
+        ],
+        "biographies": [
+            {
+                "value": f"Rent: {apartment.rent}"
+            }
+        ],
+        "urls": [
+            {
+                "value": apartment.url
+            }
+        ]
+    }).execute()
+
+    if created_obj != None:
+        return True
+    else:
+        return False
+
+
+def add_sheet_data(values):
+    creds = get_creds('https://www.googleapis.com/auth/spreadsheets')
+    service = build('sheets', 'v4', credentials=creds)
+
+    spreadsheet_id = os.environ('spreadsheet_id')
+    worksheet_name = 'logs'
+    cell_range_insert = 'A1'
+
+    value_range_body = {
+        'majorDimension': 'COLUMNS',
+        'values': values
+    }
+
+    service.spreadsheets().values().append(
+        spreadsheetId=spreadsheet_id,
+        valueInputOption='USER_ENTERED',
+        range=worksheet_name + cell_range_insert,
+        body=value_range_body
+    ).execute()
