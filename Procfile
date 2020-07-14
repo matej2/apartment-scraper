@@ -1,2 +1,2 @@
-web: gunicorn myproject.wsgi
-clock: python clock.py
+web: gunicorn apartment_scraper.wsgi
+clock: python apartment_scraper/schedule.py
