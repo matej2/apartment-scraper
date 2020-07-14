@@ -7,8 +7,10 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 from webdriverdownloader import GeckoDriverDownloader
 
+from apartment_scraper import settings
 from scraper.views import run_all
 
+settings.configure()
 
 def get_driver():
     GECKO_VER = 'v0.26.0'
