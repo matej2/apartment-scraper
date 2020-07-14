@@ -16,6 +16,7 @@ gunicorn = "*"
 djangorestframework = "*"
 apscheduler = "*"
 python-dotenv = "*"
+webdriverdownloader = "*"
 
 [requires]
 python_version = "3.8"
