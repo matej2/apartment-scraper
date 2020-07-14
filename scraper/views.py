@@ -3,7 +3,6 @@ from __future__ import print_function
 import os
 import os.path
 
-from django.contrib.sites import requests
 from django.http import HttpResponse, JsonResponse
 from googleapiclient.discovery import build
 from rest_framework import viewsets
@@ -12,7 +11,6 @@ from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 
 from apartment_scraper import settings
-# Create your views here.
 from scraper.models import Apartment, Listing
 from .GoogleUtilities import get_creds
 from .serializers import ApartmentSerializer
@@ -188,9 +186,4 @@ class ProductRESTView(viewsets.ModelViewSet):
     serializer_class = ApartmentSerializer
 
 
-def notify(updated_cnt):
-    if updated_cnt > 0:
-        requests.post(os.environ['DISCORD_WH'], data={
-            'content': f'Updated {updated_cnt} posts'
-        })
 

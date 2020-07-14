@@ -1,4 +1,6 @@
 import os
+import sys
+import requests
 
 from apscheduler.schedulers import asyncio
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -13,6 +15,21 @@ def get_driver():
     gdd = GeckoDriverDownloader()
     if len(os.listdir(gdd.get_download_path(GECKO_VER))) == 0:
         gdd.download_and_install(GECKO_VER)
+
+def notify(str):
+    requests.post(os.environ['DISCORD_WH'], data={
+        'content': str
+    })
+
+
+def my_except_hook(exctype, value, traceback):
+    if exctype == KeyboardInterrupt:
+        print
+        "Handler code goes here"
+    else:
+        sys.__excepthook__(exctype, value, traceback)
+
+sys.excepthook = my_except_hook
 
 if __name__ == '__main__':
     scheduler = AsyncIOScheduler()
