@@ -3,14 +3,13 @@ from __future__ import print_function
 import os
 import os.path
 
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 from googleapiclient.discovery import build
 from rest_framework import viewsets
 from rest_framework.decorators import api_view
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 
-from apartment_scraper import settings
 from scraper.models import Apartment, Listing
 from .GoogleUtilities import get_creds
 from .serializers import ApartmentSerializer
@@ -24,62 +23,10 @@ def init_ff():
     firefox_profile.set_preference('dom.ipc.plugins.enabled.libflashplayer.so', 'false')
 
     options = Options()
-    options.headless = False
+    options.headless = True
     options.preferences.update({"javascript.enabled": False})
     driver = webdriver.Firefox(options=options, firefox_profile=firefox_profile, executable_path=binary_dir)
     return driver
-
-
-
-def scrape_params(request):
-    driver = init_ff()
-
-    # Make sure that list ordering is 'by latest'
-    for listing in settings.POST_LISTING:
-        driver.get(listing)
-        post_list = driver.find_elements_by_css_selector('.seznam [itemprop*=name] a')
-
-        for post in post_list:
-            link = post.get_attribute('href')
-            if len(Apartment.objects.filter(url=link)) == 0:
-                post = Apartment(url=link)
-                post.save()
-                print('Added')
-            else:
-                print('Not added, stopping')
-                break
-
-    driver.close()
-    return JsonResponse(status=200)
-
-
-def process_parameters(request):
-    unscraped_posts = Apartment.objects.filter(status = 0)
-    post_container_sel = '#podrobnosti'
-
-    if len(unscraped_posts) == 0:
-        return HttpResponse('Nothing to do', status=200)
-
-    driver = init_ff()
-
-
-    print(f'unscraped:{len(unscraped_posts)}')
-
-    for post in unscraped_posts:
-        driver.get(post.url)
-        phone_nums = driver.find_element_by_css_selector(f'{post_container_sel} .kontakt-opis a[href*=tel]').text
-        rent = driver.find_element_by_css_selector(f'{post_container_sel} .cena').text
-        title = driver.find_element_by_css_selector(f'{post_container_sel} #opis .kratek .rdeca').text
-
-        curr_post = Apartment.objects.get(pk=post.id)
-        curr_post.contact = phone_nums
-        curr_post.title = title
-        curr_post.rent = rent
-        curr_post.status = 1
-        curr_post.save()
-
-    driver.close()
-    return JsonResponse(status=200)
 
 
 def add_contact(apartment):
@@ -115,6 +62,7 @@ def add_contact(apartment):
     else:
         return False
 
+
 def add_sheet_data(values):
     creds = get_creds('https://www.googleapis.com/auth/spreadsheets')
     service = build('sheets', 'v4', credentials=creds)
@@ -138,6 +86,11 @@ def add_sheet_data(values):
 
 @api_view(['GET'])
 def run_all(request):
+    if len(Listing.objects.all()) == 0:
+        return JsonResponse({
+            'status': 'No listing'
+        }, status=200)
+
     driver = init_ff()
     # Make sure that list ordering is 'by latest'
     listings = Listing.objects.all()
@@ -145,11 +98,10 @@ def run_all(request):
         driver.get(listing.url)
 
         post_cnt = 0
-        link_list = [post.get_attribute('href') for post in driver.find_elements_by_css_selector(listing.post_link_list_selector)]
+        link_list = [post.get_attribute('href') for post in
+                     driver.find_elements_by_css_selector(listing.post_link_list_selector)]
 
         for link in link_list:
-            print(f'Printing {post_cnt} link')
-            post_cnt+=1
 
             if len(Apartment.objects.filter(url=link)) == 0:
                 post_sel = listing.post_container_selector
@@ -184,6 +136,3 @@ def run_all(request):
 class ProductRESTView(viewsets.ModelViewSet):
     queryset = Apartment.objects.all()
     serializer_class = ApartmentSerializer
-
-
-
