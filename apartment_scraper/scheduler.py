@@ -9,7 +9,7 @@ from django.conf import settings
 from webdriverdownloader import GeckoDriverDownloader
 import asyncio
 
-from scraper.common import main
+
 
 
 def get_driver():
@@ -34,6 +34,8 @@ if __name__ == '__main__':
     scheduler = AsyncIOScheduler()
     settings.configure(DEBUG=True)
     django.setup()
+
+    from scraper.common import main
     get_driver()
     scheduler.add_job(main, trigger=IntervalTrigger(hours=3))
 
