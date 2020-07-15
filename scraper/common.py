@@ -1,12 +1,16 @@
 import os
 import django
-django.setup()
 
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 
+from apartment_scraper import settings
+settings.configure()
+django.setup()
+
 from scraper.GoogleUtilities import add_contact
 from scraper.models import Listing, Apartment
+
 
 
 def init_ff():
