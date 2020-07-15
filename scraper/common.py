@@ -1,9 +1,13 @@
 import os
+import django
+django.setup()
+
+from selenium import webdriver
+from selenium.webdriver.firefox.options import Options
 
 from scraper.GoogleUtilities import add_contact
 from scraper.models import Listing, Apartment
-from selenium import webdriver
-from selenium.webdriver.firefox.options import Options
+
 
 def init_ff():
     binary_dir = os.path.abspath(os.path.join('target', 'geckodriver'))
@@ -18,7 +22,8 @@ def init_ff():
     driver = webdriver.Firefox(options=options, firefox_profile=firefox_profile, executable_path=binary_dir)
     return driver
 
-def main():
+def main(request=None):
+
     if len(Listing.objects.all()) == 0:
         return True
 

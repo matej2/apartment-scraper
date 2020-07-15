@@ -2,20 +2,19 @@ import os
 import sys
 
 import requests
-from apscheduler.schedulers import asyncio
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 from webdriverdownloader import GeckoDriverDownloader
+import asyncio
 
-from apartment_scraper import settings
 from scraper.common import main
 
-settings.configure()
 
 def get_driver():
     GECKO_VER = 'v0.26.0'
     gdd = GeckoDriverDownloader()
-    if len(os.listdir(gdd.get_download_path(GECKO_VER))) == 0:
+    driver_path = gdd.get_download_path(GECKO_VER)
+    if os.path.isdir(driver_path) and len(os.listdir(driver_path)) == 0:
         gdd.download_and_install(GECKO_VER)
 
 def notify(str):
