@@ -1,9 +1,11 @@
 import os
 import sys
 
+import django
 import requests
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
+from django.conf import settings
 from webdriverdownloader import GeckoDriverDownloader
 import asyncio
 
@@ -30,6 +32,8 @@ sys.excepthook = my_except_hook
 
 if __name__ == '__main__':
     scheduler = AsyncIOScheduler()
+    settings.configure(DEBUG=True)
+    django.setup()
     get_driver()
     scheduler.add_job(main, trigger=IntervalTrigger(hours=3))
 
