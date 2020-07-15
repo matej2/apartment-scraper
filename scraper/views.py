@@ -10,7 +10,7 @@ from .serializers import ApartmentSerializer
 
 @api_view(['GET'])
 def run_all(request):
-    main()
+    main(request)
 
 
 class ProductRESTView(viewsets.ModelViewSet):
