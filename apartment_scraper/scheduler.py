@@ -20,9 +20,10 @@ def get_driver():
         gdd.download_and_install(GECKO_VER)
 
 def notify(str):
-    requests.post(os.environ['DISCORD_WH'], data={
-        'content': str
-    })
+    if os.environ['DISCORD_WH'] is not None:
+        requests.post(os.environ['DISCORD_WH'], data={
+            'content': str
+        })
 
 
 def my_except_hook(exctype, value, traceback):
@@ -36,7 +37,7 @@ if __name__ == '__main__':
     django.setup()
 
     from scraper.common import main
-    get_driver()
+
     scheduler.add_job(main, trigger=IntervalTrigger(hours=3))
 
     scheduler.start()

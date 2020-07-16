@@ -3,6 +3,7 @@ import os
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 
+from apartment_scraper.scheduler import get_driver
 from scraper.GoogleUtilities import add_contact
 from scraper.models import Listing, Apartment
 
@@ -22,6 +23,7 @@ def init_ff():
     return driver
 
 def main(request=None):
+    get_driver()
 
     if len(Listing.objects.all()) == 0:
         return True
@@ -60,6 +62,7 @@ def main(request=None):
                     print(f'Added {curr_post.title}')
                 else:
                     print(f'Problem adding {curr_post.title}, phone num: {curr_post.contact}')
+                    return False
             else:
                 print(f'No more left in listing {listing.url}')
     driver.close()
