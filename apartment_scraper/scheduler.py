@@ -32,7 +32,7 @@ sys.excepthook = my_except_hook
 
 if __name__ == '__main__':
     scheduler = AsyncIOScheduler()
-    settings.configure(DEBUG=True)
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "apartment_scraper.settings")
     django.setup()
 
     from scraper.common import main
