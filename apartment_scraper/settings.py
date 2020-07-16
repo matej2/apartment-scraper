@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'apartment_scraper.scraper.apps.ScraperConfig',
+    'scraper.apps.ScraperConfig',
     'rest_framework',
     'rest_framework.authtoken',
 ]
