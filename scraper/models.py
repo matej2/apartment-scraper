@@ -28,4 +28,4 @@ class Listing(models.Model):
     contact_selector = models.CharField(max_length=255, default='')
 
     class Meta:
-        app_label = 'apt'
+        app_label = 'list'

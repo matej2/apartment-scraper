@@ -42,7 +42,6 @@ INSTALLED_APPS = [
     'scraper.apps.ScraperConfig',
     'rest_framework',
     'rest_framework.authtoken',
-    'apt'
 ]
 
 MIDDLEWARE = [
