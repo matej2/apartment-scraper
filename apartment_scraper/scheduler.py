@@ -16,8 +16,9 @@ def get_driver():
     GECKO_VER = 'v0.26.0'
     gdd = GeckoDriverDownloader()
     driver_path = gdd.get_download_path(GECKO_VER)
-    if os.path.isdir(driver_path) and len(os.listdir(driver_path)) == 0:
+    if os.path.isdir(driver_path) is False or len(os.listdir(driver_path)) == 0:
         gdd.download_and_install(GECKO_VER)
+    return os.path.abspath(os.path.join(gdd.link_path, 'geckodriver'))
 
 def notify(str):
     if os.environ['DISCORD_WH'] is not None:

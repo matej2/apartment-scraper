@@ -9,9 +9,7 @@ from scraper.models import Listing, Apartment
 
 
 
-def init_ff():
-    binary_dir = os.path.abspath(os.path.join('target', 'geckodriver'))
-    print(binary_dir)
+def init_ff(path):
     firefox_profile = webdriver.FirefoxProfile()
     firefox_profile.set_preference('permissions.default.image', 2)
     firefox_profile.set_preference('dom.ipc.plugins.enabled.libflashplayer.so', 'false')
@@ -19,16 +17,16 @@ def init_ff():
     options = Options()
     options.headless = True
     options.preferences.update({"javascript.enabled": False})
-    driver = webdriver.Firefox(options=options, firefox_profile=firefox_profile, executable_path=binary_dir)
+    driver = webdriver.Firefox(options=options, firefox_profile=firefox_profile, executable_path=path)
     return driver
 
 def main(request=None):
-    get_driver()
+    driver_path = get_driver()
 
     if len(Listing.objects.all()) == 0:
         return True
 
-    driver = init_ff()
+    driver = init_ff(driver_path)
     # Make sure that list ordering is 'by latest'
     listings = Listing.objects.all()
     for listing in listings:
