@@ -14,9 +14,12 @@ import asyncio
 
 def get_driver():
     GECKO_VER = 'v0.26.0'
-    gdd = GeckoDriverDownloader()
+    download_dir = os.path.abspath('target')
+    if os.path.isdir(download_dir) is False:
+        os.mkdir(download_dir)
+    gdd = GeckoDriverDownloader(download_root=download_dir)
     driver_path = gdd.get_download_path(GECKO_VER)
-    if os.path.isdir(driver_path) is False or len(os.listdir(driver_path)) == 0:
+    if len(os.listdir(driver_path)) == 0:
         gdd.download_and_install(GECKO_VER)
     return os.path.abspath(os.path.join(gdd.link_path, 'geckodriver'))
 
