@@ -1,6 +1,7 @@
 import os
 
 from selenium import webdriver
+from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
 from selenium.webdriver.firefox.options import Options
 
 from apartment_scraper.scheduler import get_driver
@@ -14,10 +15,12 @@ def init_ff():
     firefox_profile.set_preference('permissions.default.image', 2)
     firefox_profile.set_preference('dom.ipc.plugins.enabled.libflashplayer.so', 'false')
 
+    binary = FirefoxBinary(os.environ.get('FIREFOX_BIN'))
+
     options = Options()
     options.headless = True
     options.preferences.update({"javascript.enabled": False})
-    driver = webdriver.Firefox(options=options, firefox_profile=firefox_profile)
+    driver = webdriver.Firefox(options=options, firefox_profile=firefox_profile, executable_path=os.environ.get('GECKODRIVER_PATH'), firefox_binary=binary)
     return driver
 
 def main(request=None):
