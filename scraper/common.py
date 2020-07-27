@@ -2,7 +2,7 @@ import os
 import django
 
 from selenium import webdriver
-from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.chrome.options import Options
 
 from apartment_scraper import settings
 settings.configure()
@@ -15,15 +15,20 @@ from scraper.models import Listing, Apartment
 
 def init_ff():
     binary_dir = os.path.abspath(os.path.join('target', 'geckodriver'))
-    print(binary_dir)
-    firefox_profile = webdriver.FirefoxProfile()
-    firefox_profile.set_preference('permissions.default.image', 2)
-    firefox_profile.set_preference('dom.ipc.plugins.enabled.libflashplayer.so', 'false')
+    option = webdriver.ChromeOptions()
+
+    # You will need to specify the binary location for Heroku
+    option.binary_location = os.getenv('GOOGLE_CHROME_BIN')
+
+    option.add_argument("--headless")
+    option.add_argument('--disable-gpu')
+    option.add_argument('--no-sandbox')
+    browser = webdriver.Chrome(executable_path=os.getenv('CHROME_EXECUTABLE_PATH'), options=option)
 
     options = Options()
     options.headless = True
     options.preferences.update({"javascript.enabled": False})
-    driver = webdriver.Firefox(options=options, firefox_profile=firefox_profile, executable_path=binary_dir)
+    driver = webdriver.Chrome(options=options, firefox_profile=firefox_profile, executable_path=binary_dir)
     return driver
 
 def main(request=None):
