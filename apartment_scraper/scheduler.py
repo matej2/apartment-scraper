@@ -13,14 +13,14 @@ def get_driver():
     GECKO_VER = 'v0.26.0'
     download_dir = os.path.abspath('target')
 
-    if os.environ.get('FIREFOX_BIN') is None:
+    if os.environ.get('GECKODRIVER_PATH') is None:
         if os.path.isdir(download_dir) is False:
             os.mkdir(download_dir)
         gdd = GeckoDriverDownloader(download_root=download_dir)
         driver_path = gdd.get_download_path(GECKO_VER)
         if os.path.isdir(driver_path) is False:
             path = gdd.download_and_install(GECKO_VER)
-            sys.path.insert(0, path)
+            os.environ["GECKODRIVER_PATH"] = str(path[0])
 
 def notify(str):
     if os.environ['DISCORD_WH'] is not None:
