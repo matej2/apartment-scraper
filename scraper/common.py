@@ -30,7 +30,7 @@ def init_ff():
     return driver
 
 
-def main(request=None):
+def main():
     get_driver()
 
     print('Running main')
