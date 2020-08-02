@@ -1,26 +1,32 @@
+import asyncio
 import os
 import sys
 
+import django
 import requests
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 from webdriverdownloader import GeckoDriverDownloader
-import asyncio
-
-from scraper.common import main
 
 
 def get_driver():
     GECKO_VER = 'v0.26.0'
-    gdd = GeckoDriverDownloader()
-    driver_path = gdd.get_download_path(GECKO_VER)
-    if os.path.isdir(driver_path) and len(os.listdir(driver_path)) == 0:
-        gdd.download_and_install(GECKO_VER)
+    download_dir = os.path.abspath('target')
+
+    if os.environ.get('GECKODRIVER_PATH') is None:
+        if os.path.isdir(download_dir) is False:
+            os.mkdir(download_dir)
+        gdd = GeckoDriverDownloader(download_root=download_dir)
+        driver_path = gdd.get_download_path(GECKO_VER)
+        if os.path.isdir(driver_path) is False:
+            path = gdd.download_and_install(GECKO_VER)
+            os.environ["GECKODRIVER_PATH"] = str(path[0])
 
 def notify(str):
-    requests.post(os.environ['DISCORD_WH'], data={
-        'content': str
-    })
+    if os.environ['DISCORD_WH'] is not None:
+        requests.post(os.environ['DISCORD_WH'], data={
+            'content': str
+        })
 
 
 def my_except_hook(exctype, value, traceback):
@@ -30,7 +36,11 @@ sys.excepthook = my_except_hook
 
 if __name__ == '__main__':
     scheduler = AsyncIOScheduler()
-    get_driver()
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "apartment_scraper.settings")
+    django.setup()
+
+    from scraper.common import main
+
     scheduler.add_job(main, trigger=IntervalTrigger(hours=3))
 
     scheduler.start()

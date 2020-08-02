@@ -1,32 +1,32 @@
 import os
-import django
 
 from selenium import webdriver
+from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
 from selenium.webdriver.firefox.options import Options
 
-from apartment_scraper import settings
-settings.configure()
-django.setup()
-
+from apartment_scraper.scheduler import get_driver, notify
 from scraper.GoogleUtilities import add_contact
 from scraper.models import Listing, Apartment
 
 
 
 def init_ff():
-    binary_dir = os.path.abspath(os.path.join('target', 'geckodriver'))
-    print(binary_dir)
     firefox_profile = webdriver.FirefoxProfile()
     firefox_profile.set_preference('permissions.default.image', 2)
     firefox_profile.set_preference('dom.ipc.plugins.enabled.libflashplayer.so', 'false')
 
+    binary = FirefoxBinary(os.environ.get('FIREFOX_BIN'))
+
     options = Options()
     options.headless = True
     options.preferences.update({"javascript.enabled": False})
-    driver = webdriver.Firefox(options=options, firefox_profile=firefox_profile, executable_path=binary_dir)
+
+    driver_path = os.environ.get('GECKODRIVER_PATH')
+    driver = webdriver.Firefox(options=options, firefox_profile=firefox_profile, executable_path=driver_path, firefox_binary=binary)
     return driver
 
 def main(request=None):
+    get_driver()
 
     if len(Listing.objects.all()) == 0:
         return True
@@ -62,9 +62,15 @@ def main(request=None):
                 curr_post.save()
 
                 if add_contact(curr_post):
-                    print(f'Added {curr_post.title}')
+                    notify(f"""
+                        Added new apartment: {curr_post.title}
+
+                        Rent: {curr_post.rent}
+                        Contact: {curr_post.contact}
+                        """)
                 else:
-                    print(f'Problem adding {curr_post.title}, phone num: {curr_post.contact}')
+                    notify(f'Problem adding {curr_post.title}, phone num: {curr_post.contact}')
+                    return False
             else:
                 print(f'No more left in listing {listing.url}')
     driver.close()
