@@ -1,11 +1,15 @@
 import os
+import django
+import requests
 
 from selenium import webdriver
 from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
 from selenium.webdriver.firefox.options import Options
 
-from apartment_scraper.scheduler import get_driver, notify
 from scraper.GoogleUtilities import add_contact
+from webdriverdownloader import GeckoDriverDownloader
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "apartment_scraper.settings")
+django.setup()
 from scraper.models import Listing, Apartment
 
 
@@ -25,8 +29,11 @@ def init_ff():
     driver = webdriver.Firefox(options=options, firefox_profile=firefox_profile, executable_path=driver_path, firefox_binary=binary)
     return driver
 
+
 def main(request=None):
     get_driver()
+
+    print('Running main')
 
     if len(Listing.objects.all()) == 0:
         return True
@@ -62,12 +69,7 @@ def main(request=None):
                 curr_post.save()
 
                 if add_contact(curr_post):
-                    notify(f"""
-                        Added new apartment: {curr_post.title}
-
-                        Rent: {curr_post.rent}
-                        Contact: {curr_post.contact}
-                        """)
+                    notify(f'Added new apartment: {curr_post.title} Rent: {curr_post.rent} Contact: {curr_post.contact}')
                 else:
                     notify(f'Problem adding {curr_post.title}, phone num: {curr_post.contact}')
                     return False
@@ -75,3 +77,24 @@ def main(request=None):
                 print(f'No more left in listing {listing.url}')
     driver.close()
     return True
+
+
+def get_driver():
+    GECKO_VER = 'v0.26.0'
+    download_dir = os.path.abspath('target')
+
+    if os.environ.get('GECKODRIVER_PATH') is None:
+        if os.path.isdir(download_dir) is False:
+            os.mkdir(download_dir)
+        gdd = GeckoDriverDownloader(download_root=download_dir)
+        driver_path = gdd.get_download_path(GECKO_VER)
+        if os.path.isdir(driver_path) is False:
+            path = gdd.download_and_install(GECKO_VER)
+            os.environ["GECKODRIVER_PATH"] = str(path[0])
+
+
+def notify(str):
+    if os.environ['DISCORD_WH'] is not None:
+        requests.post(os.environ['DISCORD_WH'], data={
+            'content': str
+        })

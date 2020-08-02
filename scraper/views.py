@@ -9,13 +9,6 @@ from .common import main
 from .serializers import ApartmentSerializer
 
 
-@api_view(['GET'])
-def run_all(request):
-    status = main(request)
-    return JsonResponse({
-        'success': status
-    }, status=200)
-
 
 class ProductRESTView(viewsets.ModelViewSet):
     queryset = Apartment.objects.all()
