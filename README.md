@@ -14,24 +14,15 @@ This is a scraper which reads parameters about apartments from various sites (fo
 6. Create an app in [Google console](https://developers.google.com/people/quickstart/python#step_1_turn_on_the) and save credentials in app root as `credentials.json`
 
 You can then either [import](https://docs.djangoproject.com/en/3.0/ref/django-admin/#loaddata) scrape settings from `scraper/fixtures` or create your own. Driver is installed automatically. 
+> python3 manage.py loaddata scraper/fixtures/nepremicnine
 
-## Endpoints
+## Use
 
-GET `api/auth`
-Obtain authentication token.
+Scraping is triggered every 3 hours. You can manually trigger this process attaching to clock process and running:
 
-Request body:
 ```
-{
-  'username': <name>,
-  'password': <pass>
-}
+python3 -c 'from scraper.common import main; main()'
 ```
-
-GET `/parameters/run_all`
-See scraped parameters
-
-Headers: `Authentication: Token <token>`
 
 ## Contributing
 
