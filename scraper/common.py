@@ -30,10 +30,35 @@ def init_ff():
     return driver
 
 
+
+
+
+def get_driver():
+    GECKO_VER = 'v0.26.0'
+    download_dir = os.path.abspath('target')
+
+    if os.environ.get('GECKODRIVER_PATH') is None:
+        if os.path.isdir(download_dir) is False:
+            os.mkdir(download_dir)
+        gdd = GeckoDriverDownloader(download_root=download_dir)
+        driver_path = gdd.get_download_path(GECKO_VER)
+        if os.path.isdir(driver_path) is False:
+            path = gdd.download_and_install(GECKO_VER)
+            os.environ["GECKODRIVER_PATH"] = str(path[0])
+
+
+def notify(str):
+    if os.environ['DISCORD_WH'] is not None:
+        requests.post(os.environ['DISCORD_WH'], data={
+            'content': str
+        })
+    else:
+        print('DISCORD_WH not defined, skipping')
+
 def main():
     get_driver()
 
-    print('Running main')
+    notify('Running main')
 
     if len(Listing.objects.all()) == 0:
         return True
@@ -77,24 +102,3 @@ def main():
                 print(f'No more left in listing {listing.url}')
     driver.close()
     return True
-
-
-def get_driver():
-    GECKO_VER = 'v0.26.0'
-    download_dir = os.path.abspath('target')
-
-    if os.environ.get('GECKODRIVER_PATH') is None:
-        if os.path.isdir(download_dir) is False:
-            os.mkdir(download_dir)
-        gdd = GeckoDriverDownloader(download_root=download_dir)
-        driver_path = gdd.get_download_path(GECKO_VER)
-        if os.path.isdir(driver_path) is False:
-            path = gdd.download_and_install(GECKO_VER)
-            os.environ["GECKODRIVER_PATH"] = str(path[0])
-
-
-def notify(str):
-    if os.environ['DISCORD_WH'] is not None:
-        requests.post(os.environ['DISCORD_WH'], data={
-            'content': str
-        })
