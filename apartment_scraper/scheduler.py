@@ -15,7 +15,7 @@ sys.excepthook = my_except_hook
 if __name__ == '__main__':
     scheduler = AsyncIOScheduler()
 
-    scheduler.add_job(main, trigger=IntervalTrigger(minutes=3))
+    scheduler.add_job(main, trigger=IntervalTrigger(minutes=35))
 
     scheduler.start()
     # Execution will block here until Ctrl+C (Ctrl+Break on Windows) is pressed.
