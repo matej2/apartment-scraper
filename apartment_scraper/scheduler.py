@@ -1,16 +1,7 @@
-import asyncio
-import sys
-
 from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 
-from scraper.common import main, notify
-
-
-def my_except_hook(exctype, value, traceback):
-    notify(f'{exctype}: {value} | {traceback}')
-
-sys.excepthook = my_except_hook
+from scraper.common import main
 
 if __name__ == '__main__':
     scheduler = BlockingScheduler()

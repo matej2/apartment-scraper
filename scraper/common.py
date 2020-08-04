@@ -1,4 +1,6 @@
 import os
+import datetime
+
 import django
 import requests
 
@@ -30,57 +32,6 @@ def init_ff():
     return driver
 
 
-def main():
-    get_driver()
-
-    print('Running main')
-
-
-    return True
-    if len(Listing.objects.all()) == 0:
-        return True
-
-    driver = init_ff()
-    # Make sure that list ordering is 'by latest'
-    listings = Listing.objects.all()
-    for listing in listings:
-        driver.get(listing.url)
-
-        post_cnt = 0
-        link_list = [post.get_attribute('href') for post in
-                     driver.find_elements_by_css_selector(listing.post_link_list_selector)]
-
-        for link in link_list:
-
-            if len(Apartment.objects.filter(url=link)) == 0:
-                post_sel = listing.post_container_selector
-
-                driver.get(link)
-
-                # Scrape attributes
-                phone_nums = driver.find_element_by_css_selector(f'{post_sel} {listing.contact_selector}').text
-                rent = driver.find_element_by_css_selector(f'{post_sel} {listing.rent_selector}').text
-                title = driver.find_element_by_css_selector(f'{post_sel} {listing.title_selector}').text
-
-                # Save attributes
-                curr_post = Apartment(url=link)
-                curr_post.contact = phone_nums
-                curr_post.title = title
-                curr_post.rent = rent
-                curr_post.status = 1
-                curr_post.save()
-
-                if add_contact(curr_post):
-                    notify(f'Added new apartment: {curr_post.title} Rent: {curr_post.rent} Contact: {curr_post.contact}')
-                else:
-                    notify(f'Problem adding {curr_post.title}, phone num: {curr_post.contact}')
-                    return False
-            else:
-                print(f'No more left in listing {listing.url}')
-    driver.close()
-    return True
-
-
 def get_driver():
     GECKO_VER = 'v0.26.0'
     download_dir = os.path.abspath('target')
@@ -106,10 +57,10 @@ def notify(str):
 
 def main():
 
-    notify('Running main')
+    print('Running main')
 
-    return True
     if len(Listing.objects.all()) == 0:
+        print('No new listings, skipping')
         return True
 
     driver = init_ff()
@@ -143,8 +94,12 @@ def main():
                 curr_post.save()
 
                 if add_contact(curr_post):
-                    notify(
-                        f'Added new apartment: {curr_post.title} Rent: {curr_post.rent} Contact: {curr_post.contact}')
+                    notify(f"""
+                        Added new apartment: {curr_post.title}
+                        Rent: {curr_post.rent} 
+                        Contact: {curr_post.contact}
+                        Date: {datetime.utcnow()}
+                    """)
                 else:
                     notify(f'Problem adding {curr_post.title}, phone num: {curr_post.contact}')
                     return False
