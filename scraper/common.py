@@ -28,7 +28,11 @@ def init_ff():
     options.preferences.update({"javascript.enabled": False})
 
     driver_path = os.environ.get('GECKODRIVER_PATH')
-    driver = webdriver.Firefox(options=options, firefox_profile=firefox_profile, executable_path=driver_path, firefox_binary=binary)
+    driver = webdriver.Firefox(
+        options=options,
+        firefox_profile=firefox_profile,
+        executable_path=driver_path,
+        firefox_binary=binary)
     return driver
 
 
