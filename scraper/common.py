@@ -56,9 +56,9 @@ def notify(str):
 
 
 def main():
-
     print('Running main')
 
+    get_driver()
     if len(Listing.objects.all()) == 0:
         print('No new listings, skipping')
         return True
