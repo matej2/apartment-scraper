@@ -17,6 +17,8 @@ djangorestframework = "*"
 apscheduler = "*"
 python-dotenv = "*"
 webdriverdownloader = "*"
+dj-database-url = "*"
+psycopg2-binary = "*"
 
 [requires]
 python_version = "3.8"
