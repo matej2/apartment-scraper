@@ -135,8 +135,6 @@ POST_LISTING = [
 ]
 
 
-django_heroku.settings(locals())
-
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.IsAuthenticated',),
     'DEFAULT_AUTHENTICATION_CLASSES': [
@@ -145,3 +143,5 @@ REST_FRAMEWORK = {
 }
 
 load_dotenv()
+
+django_heroku.settings(locals())
