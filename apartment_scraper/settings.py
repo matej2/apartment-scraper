@@ -80,7 +80,7 @@ WSGI_APPLICATION = 'apartment_scraper.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
 
-if 'DATABASE_URL' in os.environ:
+if 'TEST' in os.environ:
     import dj_database_url
     DATABASES = {
         'default': dj_database_url.config(conn_max_age=600)
