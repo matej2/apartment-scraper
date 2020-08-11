@@ -51,6 +51,7 @@ def get_driver():
 
 
 def notify(str):
+    print(str)
     if os.environ['DISCORD_WH'] is not None:
         requests.post(os.environ['DISCORD_WH'], data={
             'content': str
@@ -60,7 +61,7 @@ def notify(str):
 
 
 def main():
-    print('Running main')
+    notify('Running main')
 
     get_driver()
     if len(Listing.objects.all()) == 0:
