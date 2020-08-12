@@ -21,13 +21,21 @@ def init_ff():
     firefox_profile.set_preference('permissions.default.image', 2)
     firefox_profile.set_preference('dom.ipc.plugins.enabled.libflashplayer.so', 'false')
 
-    binary = FirefoxBinary(os.environ.get('FIREFOX_BIN'))
+    if os.environ.get('FIREFOX_BIN') is not None:
+        binary = FirefoxBinary(os.environ.get('FIREFOX_BIN'))
+    else:
+        binary = FirefoxBinary()
 
     options = Options()
     options.headless = True
     options.preferences.update({"javascript.enabled": False})
 
-    driver_path = os.environ.get('GECKODRIVER_PATH')
+
+    if os.environ.get('GECKODRIVER_PATH') is None:
+        print('Driver not installed')
+    else:
+        driver_path = os.environ.get('GECKODRIVER_PATH')
+
     driver = webdriver.Firefox(
         options=options,
         firefox_profile=firefox_profile,
@@ -56,6 +64,7 @@ def notify(str):
         requests.post(os.environ['DISCORD_WH'], data={
             'content': str
         })
+        print('Message sent')
     else:
         print('DISCORD_WH missing, skipping')
 
@@ -103,7 +112,6 @@ def main():
                         Added new apartment: {curr_post.title}
                         Rent: {curr_post.rent} 
                         Contact: {curr_post.contact}
-                        Date: {datetime.utcnow()}
                     """)
                 else:
                     notify(f'Problem adding {curr_post.title}, phone num: {curr_post.contact}')
