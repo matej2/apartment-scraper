@@ -116,7 +116,7 @@ def main():
                 else:
                     notify(f'Problem adding {curr_post.title}, phone num: {curr_post.contact}')
                     return False
-            else:
-                print(f'No more left in listing {listing.url}')
+        print(f'No more in {listing.url}')
     driver.close()
+    print(f'Finished')
     return True
