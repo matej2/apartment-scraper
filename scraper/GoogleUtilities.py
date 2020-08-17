@@ -30,7 +30,7 @@ def get_creds(SCOPES):
     return creds
 
 def add_contact(apartment):
-    creds = get_creds('https://www.googleapis.com/auth/contacts')
+    creds = get_creds(['https://www.googleapis.com/auth/contacts'])
 
     service = build('people', 'v1', credentials=creds)
 
