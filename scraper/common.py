@@ -109,9 +109,9 @@ def main():
 
                 if add_contact(curr_post):
                     notify(f"""
-                        Added new apartment: {curr_post.title}
-                        Rent: {curr_post.rent} 
-                        Contact: {curr_post.contact}
+New apartment: [{curr_post.title}]({curr_post.url})
+Rent: {curr_post.rent} 
+Contact: {curr_post.contact}
                     """)
                 else:
                     notify(f'Problem adding {curr_post.title}, phone num: {curr_post.contact}')
