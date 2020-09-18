@@ -1,3 +1,4 @@
+import base64
 import os
 import pickle
 
@@ -62,6 +63,13 @@ def add_contact(apartment):
     else:
         return False
 
+def add_picture(obj, pic):
+    creds = get_creds(['https://www.googleapis.com/auth/contacts'])
+
+    service = build('people', 'v1', credentials=creds)
+    service.people().updateContactPhoto(obj.resourceName, body= {
+        "photoBytes": base64.base64encode
+    })
 
 def add_sheet_data(values):
     creds = get_creds('https://www.googleapis.com/auth/spreadsheets')

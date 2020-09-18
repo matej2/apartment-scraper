@@ -7,6 +7,7 @@ import requests
 from selenium import webdriver
 from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
 from selenium.webdriver.firefox.options import Options
+from urllib.parse import urlparse
 
 from scraper.GoogleUtilities import add_contact
 from webdriverdownloader import GeckoDriverDownloader
@@ -82,6 +83,7 @@ def main():
     listings = Listing.objects.all()
     for listing in listings:
         driver.get(listing.url)
+        domain = urlparse(listing.url).netloc
 
         post_cnt = 0
         link_list = [post.get_attribute('href') for post in
@@ -98,6 +100,7 @@ def main():
                 phone_nums = driver.find_element_by_css_selector(f'{post_sel} {listing.contact_selector}').text
                 rent = driver.find_element_by_css_selector(f'{post_sel} {listing.rent_selector}').text
                 title = driver.find_element_by_css_selector(f'{post_sel} {listing.title_selector}').text
+                description = driver.find_element_by_css_selector(f'{post_sel} {listing.description_selector}').text
 
                 # Save attributes
                 curr_post = Apartment(url=link)
@@ -105,13 +108,18 @@ def main():
                 curr_post.title = title
                 curr_post.rent = rent
                 curr_post.status = 1
+                curr_post.description = description
                 curr_post.save()
 
-                if add_contact(curr_post):
+                result = add_contact(curr_post)
+                #add_picture(result, )
+
+                if result:
                     notify(f"""
-New apartment: [{curr_post.title}]({curr_post.url})
-Rent: {curr_post.rent} 
+New apartment: [{curr_post.title}]({curr_post.url}) in listing [{domain}]({listing.url})
+Rent: {curr_post.rent}
 Contact: {curr_post.contact}
+Description: {curr_post.description}
                     """)
                 else:
                     notify(f'Problem adding {curr_post.title}, phone num: {curr_post.contact}')
