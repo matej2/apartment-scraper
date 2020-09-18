@@ -2,6 +2,8 @@ import base64
 import os
 import pickle
 
+from apartment_scraper.settings import BASE_DIR
+
 from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
@@ -9,12 +11,14 @@ from googleapiclient.discovery import build
 
 def get_creds(SCOPES):
     creds = None
+    cred_dir = os.path.join(BASE_DIR, 'credentials.json')
+    pickle_dir = os.path.join(BASE_DIR, 'token.pickle')
 
     # The file token.pickle is
     # created automatically when the authorization flow completes for the first
     # time.
-    if os.path.exists('token.pickle'):
-        with open('token.pickle', 'rb') as token:
+    if os.path.exists(pickle_dir):
+        with open(pickle_dir, 'rb') as token:
             creds = pickle.load(token)
 
     # If there are no (valid) credentials available, let the user log in.
@@ -23,10 +27,10 @@ def get_creds(SCOPES):
             creds.refresh(Request())
         else:
             flow = InstalledAppFlow.from_client_secrets_file(
-                'credentials.json', SCOPES)
+                cred_dir, SCOPES)
             creds = flow.run_local_server(port=0)
         # Save the credentials for the next run
-        with open('token.pickle', 'wb') as token:
+        with open(pickle_dir, 'wb') as token:
             pickle.dump(creds, token)
     return creds
 
@@ -68,7 +72,7 @@ def add_picture(obj, pic):
 
     service = build('people', 'v1', credentials=creds)
     service.people().updateContactPhoto(obj.resourceName, body= {
-        "photoBytes": base64.base64encode
+        "photoBytes": base64.base64encode(pic)
     })
 
 def add_sheet_data(values):

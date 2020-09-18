@@ -97,10 +97,17 @@ def main():
                 driver.get(link)
 
                 # Scrape attributes
+                description = ''
                 phone_nums = driver.find_element_by_css_selector(f'{post_sel} {listing.contact_selector}').text
                 rent = driver.find_element_by_css_selector(f'{post_sel} {listing.rent_selector}').text
                 title = driver.find_element_by_css_selector(f'{post_sel} {listing.title_selector}').text
-                description = driver.find_element_by_css_selector(f'{post_sel} {listing.description_selector}').text
+                if listing.description_selector is not None and listing.description_selector != '':
+                    try:
+                        description = driver.find_element_by_css_selector(f'{post_sel} {listing.description_selector}').text
+                        description = description.replace('\n', '')
+                        description = description.replace('\t', '')
+                    except:
+                        print('Description not found')
 
                 # Save attributes
                 curr_post = Apartment(url=link)
@@ -119,7 +126,9 @@ def main():
 New apartment: [{curr_post.title}]({curr_post.url}) in listing [{domain}]({listing.url})
 Rent: {curr_post.rent}
 Contact: {curr_post.contact}
-Description: {curr_post.description}
+Description: 
+
+> {curr_post.description}
                     """)
                 else:
                     notify(f'Problem adding {curr_post.title}, phone num: {curr_post.contact}')
