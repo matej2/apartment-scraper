@@ -1,30 +1,31 @@
 import os
-import datetime
+from urllib.parse import urlparse
 
 import django
 import requests
 from fake_useragent import UserAgent
-
 from selenium import webdriver
 from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
 from selenium.webdriver.firefox.options import Options
-from urllib.parse import urlparse
+from webdriverdownloader import GeckoDriverDownloader
 
 from scraper.GoogleUtilities import add_contact
-from webdriverdownloader import GeckoDriverDownloader
+
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "apartment_scraper.settings")
 django.setup()
 from scraper.models import Listing, Apartment
 
-ua = UserAgent(verify_ssl=False, cache=False)
+try:
+    ua = UserAgent()
+except:
+    ua = 'Mozilla/5.0 (Android; Mobile; rv:40.0)'
+
 PROXY_LIST = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "apartment_scraper", "proxies.json")
 
 def init_ff():
     firefox_profile = webdriver.FirefoxProfile()
     firefox_profile.set_preference('permissions.default.image', 2)
     firefox_profile.set_preference('dom.ipc.plugins.enabled.libflashplayer.so', 'false')
-
-    print("User agent " + ua)
 
     if os.path.exists(PROXY_LIST):
         firefox_profile.set_preference("general.useragent.override", ua.random)
