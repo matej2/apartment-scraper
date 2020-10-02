@@ -21,6 +21,7 @@ python-dotenv = "*"
 webdriverdownloader = "*"
 dj-database-url = "*"
 rsa = "*"
+fake-useragent = "*"
 
 [requires]
 python_version = "3.8"
