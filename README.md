@@ -10,10 +10,19 @@ This is a scraper which reads parameters about apartments from various sites (fo
 2. Install  `pipenv`
 3. Run `pipenv shell` and `pipenv install`
 4. Inside pipenv, run `py manage.py runserver` or `python3 manage.py runserver`
-5. You can then [create superuser](https://djangocentral.com/creating-super-user-in-django/) to add other users and config
+5. You can then [create superuser](https://djangocentral.com/creating-super-user-in-django/) to add other users and config:
+```
+echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('admin', 'admin@myproject.com', 'password')" | python manage.py shell
+```
 6. Create an app in [Google console](https://developers.google.com/people/quickstart/python#step_1_turn_on_the) and save credentials in app root as `credentials.json`
 
 You can then either [import](https://docs.djangoproject.com/en/3.0/ref/django-admin/#loaddata) scrape settings from `scraper/fixtures` or create your own. Driver is installed automatically. 
+
+## Testing
+
+``
+python3 -c 'from scraper.common import main; main()'
+``
 
 ## Endpoints
 

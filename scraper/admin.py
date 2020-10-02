@@ -9,7 +9,7 @@ class ApartmentAdmin(admin.ModelAdmin):
 
 
 class ListingAdmin(admin.ModelAdmin):
-    list_display = ("url", "limit", "post_link_list_selector", "post_container_selector", "title_selector", "rent_selector", "contact_selector")
+    list_display = ("url", "limit", "post_link_list_selector", "post_container_selector", "title_selector", "rent_selector", "contact_selector", "description_selector")
 
 
 admin.site.register(Apartment, ApartmentAdmin)

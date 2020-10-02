@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import os
+
+import dj_database_url
 import django_heroku
 from dotenv import load_dotenv
 
@@ -22,12 +24,14 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '+3(n%55ik6ez)e&*!0!rn*d5&s$ursj57wkkoy=42_u5v7q++7'
+SECRET_KEY = os.environ.get('SECRET_KEY') if os.environ.get('SECRET_KEY') else 12345
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'bibliotheque-madame-16508.herokuapp.com/'
+]
 
 
 # Application definition
@@ -79,11 +83,15 @@ WSGI_APPLICATION = 'apartment_scraper.wsgi.application'
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        }
     }
-}
+
+db_from_env = dj_database_url.config()
+DATABASES['default'].update(db_from_env)
+
 
 
 # Password validation
@@ -122,6 +130,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_URL = '/static/'
 
 # Scrape settings
@@ -132,8 +141,6 @@ POST_LISTING = [
 ]
 
 
-django_heroku.settings(locals())
-
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.IsAuthenticated',),
     'DEFAULT_AUTHENTICATION_CLASSES': [
@@ -142,3 +149,5 @@ REST_FRAMEWORK = {
 }
 
 load_dotenv()
+
+django_heroku.settings(locals())

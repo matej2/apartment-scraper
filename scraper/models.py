@@ -11,6 +11,7 @@ class Apartment(models.Model):
     contact = models.CharField(max_length=255, null=True)
     status = models.SmallIntegerField(null=True, default=0)
     created = models.DateField(null=True, default=timezone.now)
+    description = models.CharField(max_length=255, null=True)
 
     def __str__(self):
         return self.url
@@ -23,3 +24,4 @@ class Listing(models.Model):
     title_selector = models.CharField(max_length=255, default='')
     rent_selector = models.CharField(max_length=255, default='')
     contact_selector = models.CharField(max_length=255, default='')
+    description_selector = models.CharField(max_length=255, default='')
