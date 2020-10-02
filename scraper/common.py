@@ -16,13 +16,15 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "apartment_scraper.settings")
 django.setup()
 from scraper.models import Listing, Apartment
 
-ua = UserAgent(verify_ssl=False)
+ua = UserAgent(verify_ssl=False, cache=False)
 PROXY_LIST = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "apartment_scraper", "proxies.json")
 
 def init_ff():
     firefox_profile = webdriver.FirefoxProfile()
     firefox_profile.set_preference('permissions.default.image', 2)
     firefox_profile.set_preference('dom.ipc.plugins.enabled.libflashplayer.so', 'false')
+
+    print("User agent " + ua)
 
     if os.path.exists(PROXY_LIST):
         firefox_profile.set_preference("general.useragent.override", ua.random)
