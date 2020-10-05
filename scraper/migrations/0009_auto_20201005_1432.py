@@ -13,11 +13,6 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AddField(
-            model_name='apartment',
-            name='description',
-            field=models.CharField(max_length=255, null=True),
-        ),
-        migrations.AddField(
             model_name='listing',
             name='description_selector',
             field=models.CharField(default='', max_length=255),
