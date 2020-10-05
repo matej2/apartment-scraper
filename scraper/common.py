@@ -3,12 +3,15 @@ from urllib.parse import urlparse
 
 import django
 import requests
+from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
 from selenium import webdriver
 from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
 from selenium.webdriver.firefox.options import Options
 from webdriverdownloader import GeckoDriverDownloader
 
+from apartment_scraper.header import get_random_headers
+from apartment_scraper.proxy import proxy_generator, get_using_proxy
 from scraper.GoogleUtilities import add_contact
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "apartment_scraper.settings")
@@ -69,7 +72,7 @@ def get_driver():
 
 def notify(str):
     print(str)
-    if os.environ['DISCORD_WH'] is not None:
+    if os.getenv('DISCORD_WH') is not None:
         requests.post(os.environ['DISCORD_WH'], data={
             'content': str
         })
@@ -79,39 +82,48 @@ def notify(str):
 
 
 def main():
+    link_list = []
+    proxy = proxy_generator()
+
     notify('Running main')
 
-    get_driver()
     if len(Listing.objects.all()) == 0:
         print('No new listings, skipping')
         return True
 
-    driver = init_ff()
+
     # Make sure that list ordering is 'by latest'
     listings = Listing.objects.all()
+
     for listing in listings:
-        driver.get(listing.url)
+        response = get_using_proxy(listing.url, proxy)
+        soup = BeautifulSoup(response.content, 'html.parser')
+
         domain = urlparse(listing.url).netloc
+        scheme = urlparse(listing.url).scheme
 
         post_cnt = 0
-        link_list = [post.get_attribute('href') for post in
-                     driver.find_elements_by_css_selector(listing.post_link_list_selector)]
+        for post in soup.select(listing.post_link_list_selector):
+            if post is not None and post['href'] is not None:
+                link_list.append(scheme + '://' + domain + post['href'])
+
 
         for link in link_list:
 
             if len(Apartment.objects.filter(url=link)) == 0:
                 post_sel = listing.post_container_selector
 
-                driver.get(link)
+                response = get_using_proxy(link, proxy)
+                soup = BeautifulSoup(response.content, 'html.parser')
 
                 # Scrape attributes
                 description = ''
-                phone_nums = driver.find_element_by_css_selector(f'{post_sel} {listing.contact_selector}').text
-                rent = driver.find_element_by_css_selector(f'{post_sel} {listing.rent_selector}').text
-                title = driver.find_element_by_css_selector(f'{post_sel} {listing.title_selector}').text
+                phone_nums = soup.select_one(f'{post_sel} {listing.contact_selector}').getText()
+                rent = soup.select_one(f'{post_sel} {listing.rent_selector}').getText()
+                title = soup.select_one(f'{post_sel} {listing.title_selector}').getText()
                 if listing.description_selector is not None and listing.description_selector != '':
                     try:
-                        description = driver.find_element_by_css_selector(f'{post_sel} {listing.description_selector}').text
+                        description = soup.select_one(f'{post_sel} {listing.description_selector}').getText()
                         description = description.replace('\n', '')
                         description = description.replace('\t', '')
                     except:
@@ -142,6 +154,5 @@ Description:
                     notify(f'Problem adding {curr_post.title}, phone num: {curr_post.contact}')
                     return False
         print(f'No more in {listing.url}')
-    driver.close()
     print(f'Finished')
     return True

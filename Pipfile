@@ -6,7 +6,6 @@ verify_ssl = true
 [dev-packages]
 
 [packages]
-selenium = "*"
 django = "*"
 google-api-python-client = "*"
 "google-auth-httplib2" = "*"
@@ -22,6 +21,8 @@ webdriverdownloader = "*"
 dj-database-url = "*"
 rsa = "*"
 fake-useragent = "*"
+scrapy-rotating-proxies = "*"
+soupsieve = "*"
 
 [requires]
 python_version = "3.8"
