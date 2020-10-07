@@ -1,0 +1,42 @@
+<script src="https://apis.google.com/js/api:client.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<button id="g-auth-btn">Sign in with <b>Google</b></button>
+<script>
+function startApp() {
+    gapi.load('auth2', function(){
+        auth2 = gapi.auth2.init({
+            client_id: '473669866221-gq7o9gkfp7f7uo85avd02va4dn3ri515.apps.googleusercontent.com',
+            cookiepolicy: 'single_host_origin',
+            redirect_uri: 'http://localhost'
+        });
+    });
+}
+
+$(document).on("click", "#g-auth-btn", ()=>{
+    auth2.grantOfflineAccess({
+        prompt:"consent",
+        scope: 'contacts'
+    }).then((signInCallback)=>{
+        $.ajax({
+            type:'post',
+            data:signInCallback,
+            cache: false,
+            headers: {"X-CSRFToken": $.cookie('csrftoken')},
+            success: function (response) {
+                console.log(response);
+                if(!!response.redirect){
+                    window.location = response.redirect
+                }
+            },
+            error: function (error) {
+                console.log(error);
+                if(!!error.responseJSON.redirect){
+                    window.location = error.responseJSON.redirect
+                }
+            }
+        });
+    });
+});
+startApp();
+</script>

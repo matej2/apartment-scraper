@@ -97,6 +97,11 @@ def main():
 
     for listing in listings:
         response = get_using_proxy(listing.url, proxy)
+
+        if response is None:
+            print('No response for listing: {}'.format(listing.url))
+            continue
+
         soup = BeautifulSoup(response.content, 'html.parser')
 
         domain = urlparse(listing.url).netloc

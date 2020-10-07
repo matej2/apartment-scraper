@@ -30,8 +30,14 @@ def get_creds(SCOPES):
             config = json.loads(os.environ['CRED'])
             flow = InstalledAppFlow.from_client_config(config, SCOPES)
             flow.redirect_uri = os.environ['REDIRECT_URL']
+            authorization_url, state = flow.authorization_url(
+                # Enable offline access so that you can refresh an access token without
+                # re-prompting the user for permission. Recommended for web server apps.
+                access_type='offline',
+                # Enable incremental authorization. Recommended as a best practice.
+                include_granted_scopes='true')
             creds = flow.run_local_server(port=0)
-        # Save the credentials for the next run
+        # Save the credentials for run_consolethe next run
         with open(pickle_dir, 'wb') as token:
             pickle.dump(creds, token)
     return creds
