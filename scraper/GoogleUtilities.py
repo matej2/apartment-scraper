@@ -31,7 +31,7 @@ def get_creds(SCOPES):
             flow = InstalledAppFlow.from_client_config(config, SCOPES)
             host = os.environ['REDIRECT_URL'] if os.environ['REDIRECT_URL'] is not None else 'localhost'
             #flow.redirect_uri = os.environ['REDIRECT_URL']
-            creds = flow.run_local_server(host=host, port=8080)
+            creds = flow.run_console()
         # Save the credentials for the next run
         with open(pickle_dir, 'wb') as token:
             pickle.dump(creds, token)

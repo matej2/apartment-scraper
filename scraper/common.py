@@ -114,6 +114,9 @@ def main():
                 post_sel = listing.post_container_selector
 
                 response = get_using_proxy(link, proxy)
+                if response is None:
+                    print('Return is null, skipping...')
+                    continue
                 soup = BeautifulSoup(response.content, 'html.parser')
 
                 # Scrape attributes

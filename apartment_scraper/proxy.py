@@ -1,5 +1,7 @@
 import json
 import os
+import random
+import time
 from random import choice
 
 import requests
@@ -83,6 +85,7 @@ def get_using_proxy(url, proxy, c=10):
                 proxy = proxy_generator()
             header = get_random_headers()
             print('Using proxy {}, c={} to reach {}'.format(proxy, c, url))
+            time.sleep((random.random() * 1000 + 1000) / 1000)
             response = requests.get(url, timeout=10, proxies=proxy, headers=header)
             if response.status_code == 200:
                 print('Pass in {}-nth try'.format(c))
@@ -90,3 +93,4 @@ def get_using_proxy(url, proxy, c=10):
         except:
             print('Failed, invalidating proxy')
             proxy = None
+    return None
