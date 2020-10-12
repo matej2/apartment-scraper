@@ -139,11 +139,11 @@ def main():
 
                 # Save attributes
                 curr_post = Apartment(url=link)
-                curr_post.contact = phone_nums
-                curr_post.title = title
-                curr_post.rent = rent
+                curr_post.contact = phone_nums[:254]
+                curr_post.title = title[:243]
+                curr_post.rent = rent[:254]
                 curr_post.status = 1
-                curr_post.description = description
+                curr_post.description = description[:499]
                 curr_post.save()
 
                 result = add_contact(curr_post)
