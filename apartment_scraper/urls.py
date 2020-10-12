@@ -20,8 +20,6 @@ from rest_framework import routers
 from scraper import views
 from rest_framework.authtoken.views import obtain_auth_token
 
-from scraper.views import oAuthJavascriptView, oAuthView, oAuth2CallBackView
-
 router = routers.DefaultRouter()
 router.register(r'parameters', views.ProductRESTView)
 
@@ -29,7 +27,4 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url('api/auth', obtain_auth_token),
     url('api/', include(router.urls)),
-    url('', oAuthJavascriptView, name="login"),
-    url('auth/', oAuthView, name="auth"),
-    url('oauth2callback/', oAuth2CallBackView, name="oauth2callback"),
 ]
