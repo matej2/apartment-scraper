@@ -5,12 +5,13 @@ import django
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "apartment_scraper.settings")
 django.setup()
-from scraper.common import main
+from scraper.common import main, add_contacts
 
 if __name__ == '__main__':
     scheduler = BlockingScheduler()
 
     scheduler.add_job(main, trigger=IntervalTrigger(hours=3))
+    #scheduler.add_job(add_contacts, trigger=IntervalTrigger(hours=3))
 
     # Execution will block here until Ctrl+C (Ctrl+Break on Windows) is pressed.
     try:
