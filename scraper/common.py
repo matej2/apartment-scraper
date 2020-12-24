@@ -1,9 +1,11 @@
 import os
+from random import choice
 from urllib.parse import urlparse
 
 import django
 import requests
 from fake_useragent import UserAgent
+from http_request_randomizer.requests.proxy.requestProxy import RequestProxy
 from selenium import webdriver
 from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
 from selenium.webdriver.firefox.options import Options
@@ -20,9 +22,11 @@ try:
 except:
     ua = 'Mozilla/5.0 (Android; Mobile; rv:40.0)'
 
-PROXY_LIST = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "apartment_scraper", "proxies.json")
+PROXY_LIST = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "apartment_scraper",
+                          "proxies.json")
 
-def init_ff():
+
+def init_ff(proxy):
     firefox_profile = webdriver.FirefoxProfile()
     firefox_profile.set_preference('permissions.default.image', 2)
     firefox_profile.set_preference('dom.ipc.plugins.enabled.libflashplayer.so', 'false')
@@ -39,17 +43,26 @@ def init_ff():
     options.headless = True
     options.preferences.update({"javascript.enabled": False})
 
-
     if os.environ.get('GECKODRIVER_PATH') is None:
         print('Driver not installed')
     else:
         driver_path = os.environ.get('GECKODRIVER_PATH')
+
+    if proxy is not None:
+        webdriver.DesiredCapabilities.FIREFOX['proxy'] = {
+            "httpProxy": proxy,
+            "ftpProxy": proxy,
+            "sslProxy": proxy,
+            "proxyType": "MANUAL",
+        }
 
     driver = webdriver.Firefox(
         options=options,
         firefox_profile=firefox_profile,
         executable_path=driver_path,
         firefox_binary=binary)
+
+    driver.implicitly_wait(10)
     return driver
 
 
@@ -78,15 +91,30 @@ def notify(str):
         print('DISCORD_WH missing, skipping')
 
 
+# Updated script from: https://zenscrape.com/how-to-build-a-simple-proxy-rotator-in-python/
+def proxy_generator():
+    driver = init_ff(None)
+    driver.get("https://sslproxies.org/")
+    ip_list = driver.find_elements_by_css_selector('#proxylisttable td')[::8]
+    port_list = driver.find_elements_by_css_selector('#proxylisttable td')[1::8]
+
+    driver.close()
+
+    return choice(list(map(lambda x: x[0] + ':' + x[1], list(
+        zip(map(lambda x: x.text, ip_list),
+            map(lambda x: x.text, port_list))))))
+
+
 def main():
     notify('Running main')
+    proxy = proxy_generator()
 
     get_driver()
     if len(Listing.objects.all()) == 0:
         print('No new listings, skipping')
         return True
 
-    driver = init_ff()
+    driver = init_ff(proxy)
     # Make sure that list ordering is 'by latest'
     listings = Listing.objects.all()
     for listing in listings:
@@ -111,7 +139,8 @@ def main():
                 title = driver.find_element_by_css_selector(f'{post_sel} {listing.title_selector}').text
                 if listing.description_selector is not None and listing.description_selector != '':
                     try:
-                        description = driver.find_element_by_css_selector(f'{post_sel} {listing.description_selector}').text
+                        description = driver.find_element_by_css_selector(
+                            f'{post_sel} {listing.description_selector}').text
                         description = description.replace('\n', '')
                         description = description.replace('\t', '')
                     except:
@@ -127,7 +156,7 @@ def main():
                 curr_post.save()
 
                 result = add_contact(curr_post)
-                #add_picture(result, )
+                # add_picture(result, )
 
                 if result:
                     notify(f"""
