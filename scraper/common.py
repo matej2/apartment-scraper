@@ -11,7 +11,6 @@ from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
 from selenium.webdriver.firefox.options import Options
 from webdriverdownloader import GeckoDriverDownloader
 
-from apartment_scraper.header import get_random_headers
 from apartment_scraper.proxy import proxy_generator, get_using_proxy
 from scraper.GoogleUtilities import add_contact
 
@@ -90,7 +89,7 @@ def notify(str, ap):
     # for all params, see https://discordapp.com/developers/docs/resources/channel#embed-object
     data["embeds"].append(embed)
 
-    if os.getenv('DISCORD_WH') is not None:
+    if "DISCORD_WH" in os.environ:
         result = requests.post(os.getenv('DISCORD_WH'), data=json.dumps(data), headers={"Content-Type": "application/json"})
 
         try:
