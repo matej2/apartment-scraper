@@ -6,10 +6,6 @@ import django
 import requests
 from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
-from selenium import webdriver
-from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
-from selenium.webdriver.firefox.options import Options
-from webdriverdownloader import GeckoDriverDownloader
 
 from apartment_scraper.proxy import proxy_generator, get_using_proxy
 from scraper.GoogleUtilities import add_contact
@@ -24,50 +20,6 @@ except:
     ua = 'Mozilla/5.0 (Android; Mobile; rv:40.0)'
 
 PROXY_LIST = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "apartment_scraper", "proxies.json")
-
-def init_ff():
-    firefox_profile = webdriver.FirefoxProfile()
-    firefox_profile.set_preference('permissions.default.image', 2)
-    firefox_profile.set_preference('dom.ipc.plugins.enabled.libflashplayer.so', 'false')
-
-    if os.path.exists(PROXY_LIST):
-        firefox_profile.set_preference("general.useragent.override", ua.random)
-
-    if os.environ.get('FIREFOX_BIN') is not None:
-        binary = FirefoxBinary(os.environ.get('FIREFOX_BIN'))
-    else:
-        binary = FirefoxBinary()
-
-    options = Options()
-    options.headless = True
-    options.preferences.update({"javascript.enabled": False})
-
-
-    if os.environ.get('GECKODRIVER_PATH') is None:
-        print('Driver not installed')
-    else:
-        driver_path = os.environ.get('GECKODRIVER_PATH')
-
-    driver = webdriver.Firefox(
-        options=options,
-        firefox_profile=firefox_profile,
-        executable_path=driver_path,
-        firefox_binary=binary)
-    return driver
-
-
-def get_driver():
-    GECKO_VER = 'v0.26.0'
-    download_dir = os.path.abspath('target')
-
-    if os.environ.get('GECKODRIVER_PATH') is None:
-        if os.path.isdir(download_dir) is False:
-            os.mkdir(download_dir)
-        gdd = GeckoDriverDownloader(download_root=download_dir)
-        driver_path = gdd.get_download_path(GECKO_VER)
-        if os.path.isdir(driver_path) is False:
-            path = gdd.download_and_install(GECKO_VER)
-            os.environ["GECKODRIVER_PATH"] = str(path[0])
 
 
 def notify(str, ap):

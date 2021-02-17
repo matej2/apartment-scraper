@@ -12,7 +12,7 @@ from googleapiclient.discovery import build
 
 def get_creds(SCOPES):
     creds = None
-    cred_dir = os.path.join(BASE_DIR, 'credentials.json')
+    cred_dir = os.path.join(BASE_DIR, os.getenv('GOOGLE_APPLICATION_CREDENTIALS'))
     pickle_dir = os.path.join(BASE_DIR, 'token.pickle')
 
     # The file token.pickle is
@@ -27,7 +27,7 @@ def get_creds(SCOPES):
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
-            config = json.loads(os.environ['CRED'])
+            config = json.loads(os.environ['GOOGLE_CREDENTIALS'])
             flow = InstalledAppFlow.from_client_config(config, SCOPES)
             host = os.environ['REDIRECT_URL'] if os.environ['REDIRECT_URL'] is not None else 'localhost'
             #flow.redirect_uri = os.environ['REDIRECT_URL']
