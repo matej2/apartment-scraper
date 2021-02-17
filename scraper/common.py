@@ -134,6 +134,8 @@ def main():
                 curr_post.url = link
                 curr_post.save()
 
+                add_contact(curr_post)
+
                 notify(f"""
 New apartment: [{curr_post.title}]({curr_post.url}) in listing [{domain}]({listing.url})
 Rent: {curr_post.rent}
