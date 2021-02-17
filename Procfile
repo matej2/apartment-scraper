@@ -1,3 +1,3 @@
-release: py manage.py migrate
+release: python manage.py migrate
 web: gunicorn apartment_scraper.wsgi
-clock: py apartment_scraper/scheduler.py
+clock: python apartment_scraper/scheduler.py
