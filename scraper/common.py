@@ -99,32 +99,35 @@ def main():
                 soup = BeautifulSoup(response.content, 'html.parser')
 
                 # Scrape attributes
-                if soup.select_one(f'{post_sel} {listing.contact_selector}') is not None:
-                    phone_nums = soup.select_one(f'{post_sel} {listing.contact_selector}').getText()
+                phone_nums = soup.select_one(f'{post_sel} {listing.contact_selector}')
+                rent = soup.select_one(f'{post_sel} {listing.rent_selector}')
+                title = soup.select_one(f'{post_sel} {listing.title_selector}')
+                description = soup.select_one(f'{post_sel} {listing.description_selector}')
+                picture = soup.select_one(f'{post_sel} {listing.picture_selector}')
+
+                if phone_nums is not None:
+                    phone_nums = phone_nums.getText().strip()
                 else:
                     phone_nums = ''
-                if soup.select_one(f'{post_sel} {listing.rent_selector}') is not None:
-                    rent = soup.select_one(f'{post_sel} {listing.rent_selector}').getText()
+                if rent is not None:
+                    rent = rent.getText().strip()
                 else:
                     rent = ''
-                if soup.select_one(f'{post_sel} {listing.title_selector}') is not None:
-                    title = soup.select_one(f'{post_sel} {listing.title_selector}').getText()
+                if title is not None:
+                    title = title.getText().strip()
                 else:
                     title = ''
-
-                if soup.select_one(f'{post_sel} {listing.description_selector}') is not None:
-                    try:
-                        description = soup.select_one(f'{post_sel} {listing.description_selector}').getText()
-                        #description = description.replace('\n', '')
-                        #description = description.replace('\t', '')
-                    except:
-                        print('Description not found')
+                if description is not None:
+                    description = description.getText(separator="\n").strip()
+                    #description = description.replace('\n', '')
+                    #description = description.replace('\t', '')
                 else:
                     description = '(Not found)'
-                if soup.select_one(f'{post_sel} {listing.picture_selector}') is not None:
-                    picture = o = urlparse(soup.select_one(f'{post_sel} {listing.picture_selector}').attrs.get('href', ''))
-                    if picture.netloc == '':
-                        picture = o = urlparse(soup.select_one(f'{post_sel} {listing.picture_selector}').attrs.get('src', ''))
+                if picture is not None:
+                    if urlparse(picture.attrs.get('href', '')).netloc != '':
+                        picture = urlparse(picture.attrs.get('href', ''))
+                    else:
+                        picture = urlparse(picture.attrs.get('src', ''))
                 else:
                     picture = 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/No_picture_available.png/160px-No_picture_available.png'
 
