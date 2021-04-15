@@ -131,5 +131,5 @@ dmypy.json
 # Idea files
 /.idea
 
-credentials.json
+google-credentials.json
 token.pickle

@@ -1,13 +1,15 @@
 import json
 import os
-from urllib.parse import urlparse
+import re
+from urllib.parse import urlparse, urljoin
 
 import django
 import requests
 from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
+from requests import get
 
-from apartment_scraper.proxy import proxy_generator, get_using_proxy
+from apartment_scraper.proxy import proxy_generator, get_using_proxy, get_withouth_proxy
 from scraper.GoogleUtilities import add_contact
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "apartment_scraper.settings")
@@ -22,20 +24,20 @@ except:
 PROXY_LIST = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "apartment_scraper", "proxies.json")
 
 
-def notify(str, ap):
-    print(str)
+def notify(txt, ap):
+    print(txt)
     headers = {'Content-Type': 'application/json'}
 
     data = {}
     # for all params, see https://discordapp.com/developers/docs/resources/webhook#execute-webhook
-    data["content"] = str
+    data["content"] = str(txt)
     #data["username"] = "Apartment Scraper bot"
 
     # leave this out if you dont want an embed
     data["embeds"] = []
     embed = {
         "image": {
-            "url": ap.picture_url
+            "url": str(ap.picture_url)
         }
     }
     # for all params, see https://discordapp.com/developers/docs/resources/channel#embed-object
@@ -67,7 +69,8 @@ def main():
     listings = Listing.objects.all()
 
     for listing in listings:
-        response = get_using_proxy(listing.url, proxy)
+        #response = get_using_proxy(listing.url, proxy)
+        response = get_withouth_proxy(listing.url)
 
         if response is None:
             print('No response for listing: {}'.format(listing.url))
@@ -77,11 +80,12 @@ def main():
 
         domain = urlparse(listing.url).netloc
         scheme = urlparse(listing.url).scheme
+        base = scheme + '://' + domain
 
         post_cnt = 0
         for post in soup.select(listing.post_link_list_selector):
             if post is not None and post['href'] is not None:
-                link_list.append(scheme + '://' + domain + post['href'])
+                link_list.append(urljoin(base, post['href']))
 
 
         for link in link_list:
@@ -89,7 +93,8 @@ def main():
             if len(Apartment.objects.filter(url=link)) == 0:
                 post_sel = listing.post_container_selector
 
-                response = get_using_proxy(link, proxy)
+                #response = get_using_proxy(link, proxy)
+                response = get_withouth_proxy(link)
                 if response is None:
                     print('Return is null, skipping...')
                     continue
@@ -105,18 +110,25 @@ def main():
                     rent = soup.select_one(f'{post_sel} {listing.rent_selector}').getText()
                 else:
                     rent = ''
-                title = soup.select_one(f'{post_sel} {listing.title_selector}').getText()
+                if soup.select_one(f'{post_sel} {listing.title_selector}') is not None:
+                    title = soup.select_one(f'{post_sel} {listing.title_selector}').getText()
+                else:
+                    title = ''
+
                 if listing.description_selector is not None and listing.description_selector != '':
                     try:
                         description = soup.select_one(f'{post_sel} {listing.description_selector}').getText()
-                        description = description.replace('\n', '')
-                        description = description.replace('\t', '')
+                        #description = description.replace('\n', '')
+                        #description = description.replace('\t', '')
                     except:
                         print('Description not found')
-                if listing.picture_selector != '':
+                        description = '(Not found)'
+                if listing.picture_selector != '' and soup.select_one(f'{post_sel} {listing.picture_selector}') is not None:
                     picture = o = urlparse(soup.select_one(f'{post_sel} {listing.picture_selector}').attrs.get('href', ''))
+                    if picture.netloc == '':
+                        picture = o = urlparse(soup.select_one(f'{post_sel} {listing.picture_selector}').attrs.get('src', ''))
                 else:
-                    picture = ''
+                    picture = 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/No_picture_available.png/160px-No_picture_available.png'
 
                 # Save attributes
                 # Update or create Picture
@@ -134,10 +146,12 @@ def main():
                 curr_post.url = link
                 curr_post.save()
 
-                add_contact(curr_post)
+                #if add_contact(curr_post) is False:
+                #    notify('Error adding')
+
 
                 notify(f"""
-New apartment: [{curr_post.title}]({curr_post.url}) in listing [{domain}]({listing.url})
+New post: [{curr_post.title}]({curr_post.url}) in listing [{domain}]({listing.url})
 Rent: {curr_post.rent}
 Contact: {curr_post.contact}
 Description: 
