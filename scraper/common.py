@@ -9,7 +9,7 @@ from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
 from requests import get
 
-from apartment_scraper.proxy import proxy_generator, get_using_proxy, get_withouth_proxy
+from apartment_scraper.proxy import proxy_generator, get_using_headers
 from scraper.GoogleUtilities import add_contact
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "apartment_scraper.settings")
@@ -21,8 +21,7 @@ try:
 except:
     ua = 'Mozilla/5.0 (Android; Mobile; rv:40.0)'
 
-PROXY_LIST = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "apartment_scraper", "proxies.json")
-
+proxy = proxy_generator()
 
 def notify(txt, ap):
     print(txt)
@@ -58,19 +57,22 @@ def notify(txt, ap):
 
 def main():
     link_list = []
-    proxy = proxy_generator()
 
     if len(Listing.objects.all()) == 0:
-        print('No new listings, skipping')
+        print('No listings, skipping')
         return True
-
 
     # Make sure that list ordering is 'by latest'
     listings = Listing.objects.all()
 
+    # Get search page
     for listing in listings:
-        #response = get_using_proxy(listing.url, proxy)
-        response = get_withouth_proxy(listing.url)
+        domain = urlparse(listing.url).netloc
+        scheme = urlparse(listing.url).scheme
+        base = scheme + '://' + domain
+
+        # If website does not return 200, try changing last attr to true (use proxy)
+        response = get_using_headers(listing.url, proxy, False)
 
         if response is None:
             print('No response for listing: {}'.format(listing.url))
@@ -78,30 +80,25 @@ def main():
 
         soup = BeautifulSoup(response.content, 'html.parser')
 
-        domain = urlparse(listing.url).netloc
-        scheme = urlparse(listing.url).scheme
-        base = scheme + '://' + domain
-
-        post_cnt = 0
+        # Get post links
         for post in soup.select(listing.post_link_list_selector):
             if post is not None and post['href'] is not None:
                 link_list.append(urljoin(base, post['href']))
 
-
+        # Get posts
         for link in link_list:
 
             if len(Apartment.objects.filter(url=link)) == 0:
                 post_sel = listing.post_container_selector
+                response = get_using_headers(link, proxy, False)
 
-                #response = get_using_proxy(link, proxy)
-                response = get_withouth_proxy(link)
                 if response is None:
-                    print('Return is null, skipping...')
+                    print('No response for post {}'.format(link))
                     continue
+
                 soup = BeautifulSoup(response.content, 'html.parser')
 
                 # Scrape attributes
-                description = ''
                 if soup.select_one(f'{post_sel} {listing.contact_selector}') is not None:
                     phone_nums = soup.select_one(f'{post_sel} {listing.contact_selector}').getText()
                 else:
@@ -115,15 +112,16 @@ def main():
                 else:
                     title = ''
 
-                if listing.description_selector is not None and listing.description_selector != '':
+                if soup.select_one(f'{post_sel} {listing.description_selector}') is not None:
                     try:
                         description = soup.select_one(f'{post_sel} {listing.description_selector}').getText()
                         #description = description.replace('\n', '')
                         #description = description.replace('\t', '')
                     except:
                         print('Description not found')
-                        description = '(Not found)'
-                if listing.picture_selector != '' and soup.select_one(f'{post_sel} {listing.picture_selector}') is not None:
+                else:
+                    description = '(Not found)'
+                if soup.select_one(f'{post_sel} {listing.picture_selector}') is not None:
                     picture = o = urlparse(soup.select_one(f'{post_sel} {listing.picture_selector}').attrs.get('href', ''))
                     if picture.netloc == '':
                         picture = o = urlparse(soup.select_one(f'{post_sel} {listing.picture_selector}').attrs.get('src', ''))

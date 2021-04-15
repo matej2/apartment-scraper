@@ -7,7 +7,6 @@ from urllib.parse import urlparse
 
 import requests
 from bs4 import BeautifulSoup
-from requests import RequestException
 from requests.adapters import HTTPAdapter
 from urllib3 import Retry
 
@@ -43,35 +42,25 @@ def requests_retry_session(
     return session
 
 
-def get_using_proxy(url, proxy, c=10):
+def get_using_headers(url, proxy, use_proxy=True):
+    c = 10
     while c > 0:
         try:
             c = c - 1
-            if proxy is None:
+            if proxy is None and use_proxy is True:
                 proxy = proxy_generator()
+            domain = urlparse(url).netloc
             header = get_random_headers()
+            header['host'] = domain
+
             print('Using proxy {}, c={} to reach {}'.format(proxy, c, url))
             time.sleep((random.random() * 1000 + 1000) / 1000)
-            response = requests.get(url, timeout=10, proxies=proxy, headers=header)
-            if response.status_code == 200:
-                print('Pass in {}-nth try'.format(c))
-                return response
-        except:
-            print('Failed, invalidating proxy')
-            proxy = None
-    return None
 
-def get_withouth_proxy(url, c=10):
-    while c > 0:
-        try:
-            c = c - 1
-            header = get_random_headers()
-            domain = urlparse(url).netloc
-            scheme = urlparse(url).scheme
-            header['host'] = domain
-            print('Using proxy {}, c={} to reach {}'.format(None, c, url))
-            time.sleep((random.random() * 1000 + 1000) / 1000)
-            response = requests.get(url, timeout=10, headers=header)
+            if use_proxy is True:
+                response = requests.get(url, timeout=10, proxies=proxy, headers=header)
+            else:
+                response = requests.get(url, timeout=10, headers=header)
+
             if response.status_code == 200:
                 print('Pass in {}-nth try'.format(c))
                 return response
