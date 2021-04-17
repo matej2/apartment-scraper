@@ -16,6 +16,8 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "apartment_scraper.settings")
 django.setup()
 from scraper.models import Listing, Apartment
 
+DEV_PIC = 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/No_picture_available.png/160px-No_picture_available.png'
+
 try:
     ua = UserAgent()
 except:
@@ -23,36 +25,50 @@ except:
 
 proxy = proxy_generator()
 
-def notify(txt, ap):
-    print(txt)
+def notify(ap):
     headers = {'Content-Type': 'application/json'}
+    txt = f"""
+    New post: [{ap.title}]({ap.url}) in listing [{ap.url}]({ap.url})
+    Rent: {ap.rent}
+    Contact: {ap.contact}
+    Description: 
 
+    {ap.description}
+    ---
+                    """
     data = {}
     # for all params, see https://discordapp.com/developers/docs/resources/webhook#execute-webhook
     data["content"] = str(txt)
     #data["username"] = "Apartment Scraper bot"
 
+    if ap.picture_url is None or ap.picture_url == '':
+        pic = DEV_PIC
+    else:
+        pic = ap.picture_url
+
     # leave this out if you dont want an embed
     data["embeds"] = []
     embed = {
         "image": {
-            "url": str(ap.picture_url)
+            "url": str(pic)
         }
     }
     # for all params, see https://discordapp.com/developers/docs/resources/channel#embed-object
     data["embeds"].append(embed)
 
     if "DISCORD_WH" in os.environ:
-        result = requests.post(os.getenv('DISCORD_WH'), data=json.dumps(data), headers={"Content-Type": "application/json"})
+        result = requests.post(os.getenv('DISCORD_WH'), data=json.dumps(data), headers=headers)
 
         try:
             result.raise_for_status()
         except requests.exceptions.HTTPError as err:
             print(err)
+            return False
         else:
             print("Payload delivered successfully, code {}.".format(result.status_code))
     else:
         print('DISCORD_WH missing, skipping')
+    return True
 
 
 def main():
@@ -67,9 +83,7 @@ def main():
 
     # Get search page
     for listing in listings:
-        domain = urlparse(listing.url).netloc
-        scheme = urlparse(listing.url).scheme
-        base = scheme + '://' + domain
+
 
         # If website does not return 200, try changing last attr to true (use proxy)
         response = get_using_headers(listing.url, proxy, False)
@@ -81,22 +95,19 @@ def main():
         soup = BeautifulSoup(response.content, 'html.parser')
 
         # Get post links
-        for post in soup.select(listing.post_link_list_selector):
-            if post is not None and post['href'] is not None:
-                link_list.append(urljoin(base, post['href']))
+        link_list = get_post_links(soup, listing)
 
         # Get posts
         for link in link_list:
 
             if len(Apartment.objects.filter(url=link)) == 0:
-                post_sel = listing.post_container_selector
                 response = get_using_headers(link, proxy, False)
-
                 if response is None:
                     print('No response for post {}'.format(link))
                     continue
 
                 soup = BeautifulSoup(response.content, 'html.parser')
+                post_sel = listing.post_container_selector
 
                 # Scrape attributes
                 phone_nums = soup.select_one(f'{post_sel} {listing.contact_selector}')
@@ -119,17 +130,15 @@ def main():
                     title = ''
                 if description is not None:
                     description = description.getText(separator="\n").strip()
-                    #description = description.replace('\n', '')
-                    #description = description.replace('\t', '')
                 else:
                     description = '(Not found)'
                 if picture is not None:
                     if urlparse(picture.attrs.get('href', '')).netloc != '':
-                        picture = urlparse(picture.attrs.get('href', ''))
+                        picture = urlparse(picture.attrs.get('href', DEV_PIC))
                     else:
-                        picture = urlparse(picture.attrs.get('src', ''))
+                        picture = urlparse(picture.attrs.get('src', DEV_PIC))
                 else:
-                    picture = 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/No_picture_available.png/160px-No_picture_available.png'
+                    picture = DEV_PIC
 
                 # Save attributes
                 # Update or create Picture
@@ -143,7 +152,7 @@ def main():
                 curr_post.rent = rent[:254]
                 curr_post.status = 1
                 curr_post.description = description[:499]
-                curr_post.picture_url =picture.geturl()
+                curr_post.picture_url = picture
                 curr_post.url = link
                 curr_post.save()
 
@@ -151,17 +160,24 @@ def main():
                 #    notify('Error adding')
 
 
-                notify(f"""
-New post: [{curr_post.title}]({curr_post.url}) in listing [{domain}]({listing.url})
-Rent: {curr_post.rent}
-Contact: {curr_post.contact}
-Description: 
-
-> {curr_post.description}
-                """, curr_post)
+                notify(curr_post)
         print(f'No more in {listing.url}')
     print(f'Finished')
     return True
+
+
+def get_post_links(soup, listing):
+    link_list = []
+
+    domain = urlparse(listing.url).netloc
+    scheme = urlparse(listing.url).scheme
+    base = scheme + '://' + domain
+
+    for post in soup.select(listing.post_link_list_selector):
+        if post is not None and post['href'] is not None:
+            link_list.append(urljoin(base, post['href']))
+    return link_list
+
 
 def add_contacts():
     result = True
