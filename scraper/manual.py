@@ -1,5 +1,5 @@
 # Create your tests here.
 
-from scraper.common import main
+from scraper.common import main_updated
 
-main()
+main_updated()

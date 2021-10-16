@@ -23,11 +23,10 @@ try:
 except:
     ua = 'Mozilla/5.0 (Android; Mobile; rv:40.0)'
 
-proxy = proxy_generator()
+#proxy = proxy_generator()
 
-def notify(ap):
-    headers = {'Content-Type': 'application/json'}
-    txt = f"""
+def get_message():
+    return f"""
     New post: [{ap.title}]({ap.url}) in listing [{ap.url}]({ap.url})
     Rent: {ap.rent}
     Contact: {ap.contact}
@@ -35,10 +34,12 @@ def notify(ap):
 
     {ap.description}
     ---
-                    """
+    """
+
+def notify(ap):
+    headers = {'Content-Type': 'application/json'}
     data = {}
-    # for all params, see https://discordapp.com/developers/docs/resources/webhook#execute-webhook
-    data["content"] = str(txt)
+    data["content"] = get_message()
     #data["username"] = "Apartment Scraper bot"
 
     if ap.picture_url is None or ap.picture_url == '':
@@ -154,7 +155,10 @@ def main():
                 curr_post.description = description[:499]
                 curr_post.picture_url = picture
                 curr_post.url = link
-                curr_post.save()
+
+                if notify(curr_post) is True:
+                    curr_post.save()
+
 
                 #if add_contact(curr_post) is False:
                 #    notify('Error adding')
@@ -176,6 +180,7 @@ def get_post_links(soup, listing):
     for post in soup.select(listing.post_link_list_selector):
         if post is not None and post['href'] is not None:
             link_list.append(urljoin(base, post['href']))
+        break
     return link_list
 
 
@@ -183,3 +188,99 @@ def add_contacts():
     result = True
     for a in Apartment.objects.filter(status=1):
         result = result and add_contact(a)
+
+def main_updated():
+    if len(Listing.objects.all()) == 0:
+        print('No listings, skipping')
+        return True
+
+    # Make sure that list ordering is 'by latest'
+    listings = Listing.objects.all()
+
+    # Get search page
+    for listing in listings:
+
+
+        # If website does not return 200, try changing last attr to true (use proxy)
+        response = get_using_headers(listing.url, None, False)
+
+        if response is None:
+            continue
+
+        soup = BeautifulSoup(response.content, 'html.parser')
+
+        # Get post links
+        link_list = get_post_links(soup, listing)
+
+        # Get posts
+        post_list = get_posts(link_list)
+
+        for post in post_list:
+            soup = BeautifulSoup(post, 'html.parser')
+            post_sel = listing.post_container_selector
+
+            # Scrape attributes
+            phone_nums = soup.select_one(f'{post_sel} {listing.contact_selector}')
+            rent = soup.select_one(f'{post_sel} {listing.rent_selector}')
+            title = soup.select_one(f'{post_sel} {listing.title_selector}')
+            description = soup.select_one(f'{post_sel} {listing.description_selector}')
+            picture = soup.select_one(f'{post_sel} {listing.picture_selector}')
+
+            if phone_nums is not None:
+                phone_nums = phone_nums.getText().strip()
+            else:
+                phone_nums = ''
+            if rent is not None:
+                rent = rent.getText().strip()
+            else:
+                rent = ''
+            if title is not None:
+                title = title.getText().strip()
+            else:
+                title = ''
+            if description is not None:
+                description = description.getText(separator="\n").strip()
+            else:
+                description = '(Not found)'
+            if picture is not None:
+                if urlparse(picture.attrs.get('href', '')).netloc != '':
+                    picture = urlparse(picture.attrs.get('href', DEV_PIC))
+                else:
+                    picture = urlparse(picture.attrs.get('src', DEV_PIC))
+            else:
+                picture = DEV_PIC
+
+            # Update or create Picture
+            try:
+                curr_post = Apartment.objects.get(url=post)
+            except Apartment.DoesNotExist:
+                curr_post = Apartment()
+
+            curr_post.contact = phone_nums[:254]
+            curr_post.title = title[:243]
+            curr_post.rent = rent[:254]
+            curr_post.status = 1
+            curr_post.description = description[:499]
+            curr_post.picture_url = picture
+            curr_post.url = post
+            curr_post.save()
+
+            notify(curr_post)
+
+    return True
+
+def get_posts(link_list):
+    post_list = []
+
+    for link in link_list:
+
+        if len(Apartment.objects.filter(url=link)) == 0:
+            response = get_using_headers(link, None, False)
+            # If no response, skip
+            if response is None:
+                continue
+
+            post_list.append(response)
+            break
+
+    return post_list
