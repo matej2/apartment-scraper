@@ -46,9 +46,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'scraper.apps.ScraperConfig',
-    'rest_framework',
-    'rest_framework.authtoken',
+    'scraper.apps.ScraperConfig'
 ]
 
 MIDDLEWARE = [
@@ -143,15 +141,6 @@ SCRAPE_LIMIT=3
 POST_LISTING = [
     "https://www.nepremicnine.net/oglasi-oddaja/ljubljana-mesto/ljubljana-bezigrad,ljubljana-moste-polje/stanovanje/garsonjera,1-sobno,1.5-sobno/?s=16"
 ]
-
-
-REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.IsAuthenticated',),
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
-    ]
-}
-
 
 
 django_heroku.settings(locals())

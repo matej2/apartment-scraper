@@ -25,9 +25,9 @@ except:
 
 #proxy = proxy_generator()
 
-def get_message():
+def get_message(listing, ap):
     return f"""
-    New post: [{ap.title}]({ap.url}) in listing [{ap.url}]({ap.url})
+    New post: [{ap.title}]({ap.url}) in listing [{listing.url}]({listing.url})
     Rent: {ap.rent}
     Contact: {ap.contact}
     Description: 
@@ -36,10 +36,10 @@ def get_message():
     ---
     """
 
-def notify(ap):
+def notify(listing, ap):
     headers = {'Content-Type': 'application/json'}
     data = {}
-    data["content"] = get_message()
+    data["content"] = get_message(listing, ap)
     #data["username"] = "Apartment Scraper bot"
 
     if ap.picture_url is None or ap.picture_url == '':
@@ -216,10 +216,11 @@ def main_updated():
         post_list = get_posts(link_list)
 
         for post in post_list:
-            soup = BeautifulSoup(post, 'html.parser')
+            soup = BeautifulSoup(post.content, 'html.parser')
             post_sel = listing.post_container_selector
 
             # Scrape attributes
+            url = post.url
             phone_nums = soup.select_one(f'{post_sel} {listing.contact_selector}')
             rent = soup.select_one(f'{post_sel} {listing.rent_selector}')
             title = soup.select_one(f'{post_sel} {listing.title_selector}')
@@ -244,9 +245,9 @@ def main_updated():
                 description = '(Not found)'
             if picture is not None:
                 if urlparse(picture.attrs.get('href', '')).netloc != '':
-                    picture = urlparse(picture.attrs.get('href', DEV_PIC))
+                    picture = urlparse(picture.attrs.get('href', DEV_PIC)).geturl()
                 else:
-                    picture = urlparse(picture.attrs.get('src', DEV_PIC))
+                    picture = urlparse(picture.attrs.get('src', DEV_PIC)).geturl()
             else:
                 picture = DEV_PIC
 
@@ -262,10 +263,10 @@ def main_updated():
             curr_post.status = 1
             curr_post.description = description[:499]
             curr_post.picture_url = picture
-            curr_post.url = post
+            curr_post.url = url
             curr_post.save()
 
-            notify(curr_post)
+            notify(listing, curr_post)
 
     return True
 

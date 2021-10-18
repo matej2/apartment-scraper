@@ -18,13 +18,11 @@ from django.contrib import admin
 from rest_framework import routers
 
 from scraper import views
-from rest_framework.authtoken.views import obtain_auth_token
 
 router = routers.DefaultRouter()
 router.register(r'parameters', views.ProductRESTView)
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url('api/auth', obtain_auth_token),
     url('api/', include(router.urls)),
 ]
