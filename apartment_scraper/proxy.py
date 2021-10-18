@@ -42,7 +42,7 @@ def requests_retry_session(
     return session
 
 
-def get_using_headers(url, proxy, use_proxy=True):
+def get_using_proxy(url, proxy, use_proxy=True):
     c = 10
     while c > 0:
         try:
@@ -73,4 +73,27 @@ def get_using_headers(url, proxy, use_proxy=True):
         except requests.exceptions.RequestException as e:
             print("Some Ambiguous Exception:", e)
             proxy = None
+    return None
+
+def get_using_headers(url):
+    c = 10
+    while c > 0:
+        try:
+            c = c - 1
+            domain = urlparse(url).netloc
+            header = get_random_headers()
+            header['host'] = domain
+
+            time.sleep((random.random() * 1000 + 1000) / 1000)
+
+            response = requests.get(url, timeout=10, headers=header)
+
+            if response.status_code == 200:
+                return response
+        except requests.exceptions.ConnectionError as ece:
+            print("Connection Error:", ece)
+        except requests.exceptions.Timeout as et:
+            print("Timeout Error:", et)
+        except requests.exceptions.RequestException as e:
+            print("Some Ambiguous Exception:", e)
     return None
