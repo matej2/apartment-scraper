@@ -12,7 +12,13 @@ class Apartment(models.Model):
     status = models.SmallIntegerField(null=True, default=0)
     created = models.DateField(null=True, default=timezone.now)
     description = models.CharField(max_length=500, null=True)
-    picture_url = models.CharField(max_length=255, null=True)
+
+    def __str__(self):
+        return f'{self.title}: {self.url}'
+
+class Photo(models.Model):
+    url = models.CharField(max_length=400)
+    apartment = models.ForeignKey(Apartment, on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
         return self.url

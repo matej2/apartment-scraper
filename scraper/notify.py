@@ -22,16 +22,11 @@ def notify(listing, ap):
     data["content"] = get_message(listing, ap)
     #data["username"] = "Apartment Scraper bot"
 
-    if ap.picture_url is None or ap.picture_url == '':
-        pic = DEV_PIC
-    else:
-        pic = ap.picture_url
-
     # leave this out if you dont want an embed
     data["embeds"] = []
     embed = {
         "image": {
-            "url": str(pic)
+            "url": str(DEV_PIC)
         }
     }
     # for all params, see https://discordapp.com/developers/docs/resources/channel#embed-object

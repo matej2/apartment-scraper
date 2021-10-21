@@ -11,7 +11,7 @@ from scraper.GoogleUtilities import add_contact
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "apartment_scraper.settings")
 django.setup()
-from scraper.models import Listing, Apartment
+from scraper.models import Listing, Apartment, Photo
 from notify import DEV_PIC, notify
 
 
@@ -101,13 +101,7 @@ def main_updated():
                 description = description.getText(separator="\n").strip()
             else:
                 description = '(Not found)'
-            if picture is not None:
-                if urlparse(picture.attrs.get('href', '')).netloc != '':
-                    picture = urlparse(picture.attrs.get('href', DEV_PIC)).geturl()
-                else:
-                    picture = urlparse(picture.attrs.get('src', DEV_PIC)).geturl()
-            else:
-                picture = DEV_PIC
+
 
             print(f'New post: {title}')
 
@@ -122,9 +116,20 @@ def main_updated():
             curr_post.rent = rent[:254]
             curr_post.status = 1
             curr_post.description = description[:499]
-            curr_post.picture_url = picture
             curr_post.url = url
             curr_post.save()
+
+            if picture is not None:
+                for p in picture:
+                    try:
+                        post_photo = Photo.objects.get(url=post)
+                    except Photo.DoesNotExist:
+                        post_photo = Photo()
+
+                    data_url = urlparse(p.attrs.get('data-src')).geturl()
+                    post_photo.url = data_url.replace('/thumbnails', '')
+                    post_photo.apartment = curr_post
+                    post_photo.save()
 
             notify(listing, curr_post)
             time.sleep((random.random() * 1000 + 1000) / 1000)
