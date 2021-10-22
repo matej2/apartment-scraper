@@ -12,6 +12,8 @@ class Apartment(models.Model):
     status = models.SmallIntegerField(null=True, default=0)
     created = models.DateField(null=True, default=timezone.now)
     description = models.CharField(max_length=500, null=True)
+    description_2 = models.CharField(max_length=10, null=True)
+    subtitle = models.CharField(max_length=10, null=True)
 
     def __str__(self):
         return f'{self.title}: {self.url}'
@@ -26,10 +28,12 @@ class Photo(models.Model):
 class Listing(models.Model):
     url = models.CharField(max_length=2000)
     limit = models.IntegerField(null=True, default=0)
-    post_link_list_selector = models.CharField(max_length=255, default='')
-    post_container_selector = models.CharField(max_length=255, default='')
-    title_selector = models.CharField(max_length=255, default='')
-    rent_selector = models.CharField(max_length=255, default='')
-    contact_selector = models.CharField(max_length=255, default='')
-    description_selector = models.CharField(max_length=255, default='')
-    picture_selector = models.CharField(max_length=255, default='')
+    post_link_list_selector = models.CharField(max_length=255, default='', null=True)
+    post_container_selector = models.CharField(max_length=255, default='', null=True)
+    title_selector = models.CharField(max_length=255, default='', null=True)
+    rent_selector = models.CharField(max_length=255, default='', null=True)
+    contact_selector = models.CharField(max_length=255, default='', null=True)
+    description_selector = models.CharField(max_length=255, default='', null=True)
+    picture_selector = models.CharField(max_length=255, default='', null=True)
+    description_2_selector = models.CharField(max_length=255, default='', null=True)
+    subtitle_selector = models.CharField(max_length=255, default='', null=True)

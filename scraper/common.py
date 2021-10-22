@@ -1,5 +1,6 @@
 import os
 import random
+import re
 import time
 from urllib.parse import urlparse, urljoin
 
@@ -12,7 +13,7 @@ from scraper.GoogleUtilities import add_contact
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "apartment_scraper.settings")
 django.setup()
 from scraper.models import Listing, Apartment, Photo
-from notify import DEV_PIC, notify
+from notify import DEV_PIC, notify, send_wh
 
 
 def add_contacts():
@@ -46,6 +47,9 @@ def get_posts(link_list):
             post_list.append(response)
 
     return post_list
+
+def clean(str):
+    return re.sub('(\\n)+', '\n', str.replace('Izračun kredita', ''))
 
 def main_updated():
     if len(Listing.objects.all()) == 0:
@@ -83,24 +87,34 @@ def main_updated():
             rent = soup.select_one(f'{post_sel} {listing.rent_selector}')
             title = soup.select_one(f'{post_sel} {listing.title_selector}')
             description = soup.select_one(f'{post_sel} {listing.description_selector}')
-            picture = soup.select_one(f'{post_sel} {listing.picture_selector}')
+            picture = soup.select(f'{post_sel} {listing.picture_selector}')
+            description_2 = soup.select_one(f'{post_sel} {listing.description_2_selector}')
+            subtitle = soup.select_one(f'{post_sel} {listing.subtitle_selector}')
 
             if phone_nums is not None:
-                phone_nums = phone_nums.getText().strip()
+                phone_nums = clean(phone_nums.getText().strip())
             else:
                 phone_nums = ''
             if rent is not None:
-                rent = rent.getText().strip()
+                rent = clean(rent.getText().strip())
             else:
                 rent = ''
             if title is not None:
-                title = title.getText().strip()
+                title = clean(title.getText().strip())
             else:
                 title = ''
             if description is not None:
                 description = description.getText(separator="\n").strip()
             else:
                 description = '(Not found)'
+            if description_2 is not None:
+                description_2 = clean(description_2.getText().strip())
+            else:
+                description_2 = ''
+            if subtitle is not None:
+                subtitle = clean(subtitle.getText().strip())
+            else:
+                subtitle = ''
 
 
             print(f'New post: {title}')
@@ -117,6 +131,8 @@ def main_updated():
             curr_post.status = 1
             curr_post.description = description[:499]
             curr_post.url = url
+            curr_post.description_2 = description_2
+            curr_post.subtitle = subtitle
             curr_post.save()
 
             if picture is not None:
@@ -126,12 +142,17 @@ def main_updated():
                     except Photo.DoesNotExist:
                         post_photo = Photo()
 
-                    data_url = urlparse(p.attrs.get('data-src')).geturl()
-                    post_photo.url = data_url.replace('/thumbnails', '')
+                    data_url = urlparse(p.attrs.get('href')).geturl()
+                    if data_url == b'':
+                        data_url = urlparse(p.attrs.get('src')).geturl()
+                    if data_url == b'':
+                        data_url = urlparse(p.attrs.get('data-src')).geturl()
+
+                    post_photo.url = data_url.replace('thumbnails', '')
                     post_photo.apartment = curr_post
                     post_photo.save()
 
-            notify(listing, curr_post)
+            send_wh(listing, curr_post)
             time.sleep((random.random() * 1000 + 1000) / 1000)
 
     return True
