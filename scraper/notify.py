@@ -6,10 +6,8 @@ from discord_webhook import DiscordWebhook, DiscordEmbed
 
 from config.models import Webhook
 
-DEV_PIC = 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/No_picture_available.png/160px-No_picture_available.png'
 
-
-def send_wh(listing, ap):
+def send_discord_wh(listing, ap):
     wh_list = Webhook.objects.all()
 
     for wh in wh_list:
@@ -39,35 +37,3 @@ def send_wh(listing, ap):
             response.raise_for_status()
         except requests.exceptions.HTTPError as err:
             print(err)
-
-
-def notify(listing, ap):
-    headers = {'Content-Type': 'application/json'}
-    data = {}
-    data["content"] = get_message(listing, ap)
-    #data["username"] = "Apartment Scraper bot"
-
-    # leave this out if you dont want an embed
-    data["embeds"] = []
-
-    photos = ap.photo_set.all()
-    for p in photos:
-        embed = {
-            "image": {
-                "url": str(p.url)
-            }
-        }
-        # for all params, see https://discordapp.com/developers/docs/resources/channel#embed-object
-        data["embeds"].append(embed)
-
-    if "DISCORD_WH" in os.environ:
-        result = requests.post(os.getenv('DISCORD_WH'), data=json.dumps(data), headers=headers)
-
-        try:
-            result.raise_for_status()
-        except requests.exceptions.HTTPError as err:
-            print(err)
-            return False
-    else:
-        print('DISCORD_WH missing, skipping')
-    return True
