@@ -4,37 +4,41 @@ import os
 import requests
 from discord_webhook import DiscordWebhook, DiscordEmbed
 
+from config.models import Webhook
+
 DEV_PIC = 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/No_picture_available.png/160px-No_picture_available.png'
 
 
 def send_wh(listing, ap):
-    webhook = DiscordWebhook(url=os.getenv('DISCORD_WH'), rate_limit_retry=True)
-    embed = DiscordEmbed(description=ap.subtitle, color='03b2f8')
+    wh_list = Webhook.objects.all()
 
-    embed.set_author(name=ap.title, url=ap.url)
-    embed.add_embed_field(name='Description', value=ap.description, inline=False)
-    embed.add_embed_field(name='Rent', value=ap.rent)
-    embed.add_embed_field(name='Contact', value=ap.contact)
-    embed.add_embed_field(name='Listing', value=listing.url)
+    for wh in wh_list:
+        webhook = DiscordWebhook(url=wh.url, rate_limit_retry=True)
+        embed = DiscordEmbed(description=ap.subtitle, color='03b2f8')
 
-    # add embed object to webhook
-    webhook.add_embed(embed)
+        embed.set_author(name=ap.title, url=ap.url)
+        embed.add_embed_field(name='Description', value=ap.description, inline=False)
+        embed.add_embed_field(name='Rent', value=ap.rent)
+        embed.add_embed_field(name='Contact', value=ap.contact)
+        embed.add_embed_field(name='Listing', value=listing.url)
 
-    photos = ap.photo_set.all()
-    i = 1
-    while i < 10 and i < len(photos):
-        p = photos[i]
-        thumb = DiscordEmbed(color='03b2f8')
-        thumb.set_thumbnail(url=str(p.url))
-        webhook.add_embed(thumb)
-        i = i + 1
+        # add embed object to webhook
+        webhook.add_embed(embed)
 
-    response = webhook.execute()
-    try:
-        response.raise_for_status()
-    except requests.exceptions.HTTPError as err:
-        print(err)
-        return False
+        photos = ap.photo_set.all()
+        i = 1
+        while i < 10 and i < len(photos):
+            p = photos[i]
+            thumb = DiscordEmbed(color='03b2f8')
+            thumb.set_thumbnail(url=str(p.url))
+            webhook.add_embed(thumb)
+            i = i + 1
+
+        response = webhook.execute()
+        try:
+            response.raise_for_status()
+        except requests.exceptions.HTTPError as err:
+            print(err)
 
 
 def notify(listing, ap):
