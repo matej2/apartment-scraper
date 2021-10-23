@@ -51,7 +51,7 @@ def get_posts(link_list):
 def clean(str):
     return re.sub('(\\n)+', '\n', str.replace('Izračun kredita', ''))
 
-def main_updated():
+def main():
     if len(Listing.objects.all()) == 0:
         print('No listings, skipping')
         return True
