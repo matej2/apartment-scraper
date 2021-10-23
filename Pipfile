@@ -23,6 +23,7 @@ rsa = "*"
 fake-useragent = "*"
 scrapy-rotating-proxies = "*"
 soupsieve = "*"
+discord-webhook = "*"
 
 [requires]
 python_version = "3.8"
