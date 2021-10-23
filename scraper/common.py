@@ -13,7 +13,7 @@ from scraper.GoogleUtilities import add_contact
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "apartment_scraper.settings")
 django.setup()
 from scraper.models import Listing, Apartment, Photo
-from notify import send_discord_wh
+from .notify import send_discord_wh
 
 
 def add_contacts():
