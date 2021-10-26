@@ -131,8 +131,8 @@ def main():
             curr_post.status = 1
             curr_post.description = description[:499]
             curr_post.url = url
-            curr_post.description_2 = description_2
-            curr_post.subtitle = subtitle
+            curr_post.description_2 = description_2[:500]
+            curr_post.subtitle = subtitle[:250]
             curr_post.save()
 
             if picture is not None:

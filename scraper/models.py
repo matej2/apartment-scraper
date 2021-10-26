@@ -12,8 +12,8 @@ class Apartment(models.Model):
     status = models.SmallIntegerField(null=True, default=0)
     created = models.DateField(null=True, default=timezone.now)
     description = models.CharField(max_length=500, null=True)
-    description_2 = models.CharField(max_length=10, null=True)
-    subtitle = models.CharField(max_length=10, null=True)
+    description_2 = models.CharField(max_length=500, null=True)
+    subtitle = models.CharField(max_length=250, null=True)
 
     def __str__(self):
         return f'{self.title}: {self.url}'
