@@ -1,11 +1,10 @@
 import requests
 from discord_webhook import DiscordWebhook, DiscordEmbed
 
-from config.models import WebhookListing
 
 
 def process_messages(listing, ap):
-    webhook_list = WebhookListing.objects.filter(listing=listing.id)
+    webhook_list = listing.webhook.all()
     for wh in webhook_list:
         send_discord_wh(listing.url, ap, wh.url)
 

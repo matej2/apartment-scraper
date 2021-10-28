@@ -3,6 +3,8 @@ from django.db import models
 # Create your models here.
 from django.utils import timezone
 
+from config.models import Webhook
+
 
 class Apartment(models.Model):
     url = models.CharField(max_length=400)
@@ -29,6 +31,7 @@ class Listing(models.Model):
     name = models.CharField(max_length=100, null=True, blank=True)
     url = models.CharField(max_length=2000)
     limit = models.IntegerField(null=True, default=0)
+    webhook = models.ManyToManyField(Webhook, null=True, blank=True)
     post_link_list_selector = models.CharField(max_length=255, default='', null=True, blank=True)
     post_container_selector = models.CharField(max_length=255, default='', null=True, blank=True)
     title_selector = models.CharField(max_length=255, default='', null=True, blank=True)
