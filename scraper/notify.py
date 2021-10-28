@@ -1,39 +1,39 @@
-import json
-import os
-
 import requests
 from discord_webhook import DiscordWebhook, DiscordEmbed
 
-from config.models import Webhook
+from config.models import WebhookListing
 
 
-def send_discord_wh(listing, ap):
-    wh_list = Webhook.objects.all()
+def process_messages(listing, ap):
+    webhook_list = WebhookListing.objects.filter(listing=listing.id)
+    for wh in webhook_list:
+        send_discord_wh(listing.url, ap, wh.url)
 
-    for wh in wh_list:
-        webhook = DiscordWebhook(url=wh.url, rate_limit_retry=True)
-        embed = DiscordEmbed(description=ap.subtitle, color='03b2f8')
+def send_discord_wh(listing_url, ap, wh_url):
 
-        embed.set_author(name=ap.title, url=ap.url)
-        embed.add_embed_field(name='Description', value=ap.description, inline=False)
-        embed.add_embed_field(name='Rent', value=ap.rent)
-        embed.add_embed_field(name='Contact', value=ap.contact)
-        embed.add_embed_field(name='Listing', value=listing.url)
+    webhook = DiscordWebhook(url=wh_url, rate_limit_retry=True)
+    embed = DiscordEmbed(description=ap.subtitle, color='03b2f8')
 
-        # add embed object to webhook
-        webhook.add_embed(embed)
+    embed.set_author(name=ap.title, url=ap.url)
+    embed.add_embed_field(name='Description', value=ap.description, inline=False)
+    embed.add_embed_field(name='Rent', value=ap.rent)
+    embed.add_embed_field(name='Contact', value=ap.contact)
+    embed.add_embed_field(name='Listing', value=listing_url)
 
-        photos = ap.photo_set.all()
-        i = 1
-        while i < 10 and i < len(photos):
-            p = photos[i]
-            thumb = DiscordEmbed(color='03b2f8')
-            thumb.set_thumbnail(url=str(p.url))
-            webhook.add_embed(thumb)
-            i = i + 1
+    # add embed object to webhook
+    webhook.add_embed(embed)
 
-        response = webhook.execute()
-        try:
-            response.raise_for_status()
-        except requests.exceptions.HTTPError as err:
-            print(err)
+    photos = ap.photo_set.all()
+    i = 1
+    while i < 10 and i < len(photos):
+        p = photos[i]
+        thumb = DiscordEmbed(color='03b2f8')
+        thumb.set_thumbnail(url=str(p.url))
+        webhook.add_embed(thumb)
+        i = i + 1
+
+    response = webhook.execute()
+    try:
+        response.raise_for_status()
+    except requests.exceptions.HTTPError as err:
+        print(err)

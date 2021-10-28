@@ -13,7 +13,7 @@ from scraper.GoogleUtilities import add_contact
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "apartment_scraper.settings")
 django.setup()
 from scraper.models import Listing, Apartment, Photo
-from .notify import send_discord_wh
+from .notify import send_discord_wh, process_messages
 
 
 def add_contacts():
@@ -152,7 +152,7 @@ def main():
                     post_photo.apartment = curr_post
                     post_photo.save()
 
-            send_discord_wh(listing, curr_post)
+            process_messages(listing, curr_post)
             time.sleep((random.random() * 1000 + 1000) / 1000)
 
     return True
