@@ -27,7 +27,7 @@ def send_discord_wh(listing_url, ap, wh_url):
     while i < 10 and i < len(photos):
         p = photos[i]
         thumb = DiscordEmbed(color='03b2f8')
-        thumb.set_thumbnail(url=str(p.url))
+        thumb.set_image(url=str(p.url))
         webhook.add_embed(thumb)
         i = i + 1
 
