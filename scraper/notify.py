@@ -14,10 +14,10 @@ def send_discord_wh(listing_url, ap, wh_url):
     embed = DiscordEmbed(description=ap.subtitle, color='03b2f8')
 
     embed.set_author(name=ap.title, url=ap.url)
-    embed.add_embed_field(name='Description', value=ap.description, inline=False)
-    embed.add_embed_field(name='Rent', value=ap.rent)
-    embed.add_embed_field(name='Contact', value=ap.contact)
-    embed.add_embed_field(name='Listing', value=listing_url)
+    embed.add_embed_field(name='📝 Description', value=ap.description, inline=False)
+    embed.add_embed_field(name='💵 Rent', value=ap.rent)
+    embed.add_embed_field(name='📞 Contact', value=ap.contact)
+    embed.add_embed_field(name='📁 Listing', value=listing_url)
 
     # add embed object to webhook
     webhook.add_embed(embed)
